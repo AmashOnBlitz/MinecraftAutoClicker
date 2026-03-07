@@ -32,23 +32,24 @@ Button::Button(HWND hwnd, Graphics* gfx,
 
 D2D1::ColorF Button::CurrentBgColor() const {
     switch (mState) {
-    case State::Hover:   return Lighten(mBgColor, 0.10f);
-    case State::Pressed: return Darken(mBgColor, 0.12f);
-    default:             return mBgColor;
+    case State::Hover:      return Lighten(mBgColor, 0.10f);
+    case State::Pressed:    return Darken(mBgColor, 0.12f);
+    case State::Disabled:   return Darken(mBgColor, 0.12f);
+    default:                return mBgColor;
     }
 }
 
 void Button::render() {}
 
 void Button::OnMouseMove(float mx, float my) {
-    if (HitTest(mx, my)) {
+    if (HitTest(mx, my) && mState != State::Disabled) {
         if (mState == State::Normal) {
             mState = State::Hover;
             InvalidateRect(mHwnd, nullptr, FALSE);  
         }
     }
     else {
-        if (mState == State::Hover) {
+        if (mState == State::Hover && mState != State::Disabled) {
             mState = State::Normal;
             InvalidateRect(mHwnd, nullptr, FALSE);
         }
@@ -56,14 +57,14 @@ void Button::OnMouseMove(float mx, float my) {
 }
 
 void Button::OnMouseDown(float mx, float my) {
-    if (HitTest(mx, my)) {
+    if (HitTest(mx, my) && mState != State::Disabled) {
         mState = State::Pressed;
         InvalidateRect(mHwnd, nullptr, FALSE);
     }
 }
 
 void Button::OnMouseUp(float mx, float my) {
-    if (mState == State::Pressed) {
+    if (mState == State::Pressed && mState != State::Disabled) {
         mState = HitTest(mx, my) ? State::Hover : State::Normal;
         InvalidateRect(mHwnd, nullptr, FALSE);
         if (mOnClick && HitTest(mx, my)) mOnClick();
@@ -71,9 +72,17 @@ void Button::OnMouseUp(float mx, float my) {
 }
 
 void Button::OnMouseLeave() {
-    if (mState != State::Normal) {
+    if (mState != State::Normal && mState != State::Disabled) {
         mState = State::Normal;
         InvalidateRect(mHwnd, nullptr, FALSE);
+    }
+}
+
+void Button::SetDisabled(bool disabled)
+{
+    if (disabled && mState != State::Disabled) {
+        mState = State::Disabled;
+        InvalidateRect(mHwnd, nullptr, TRUE);
     }
 }
 

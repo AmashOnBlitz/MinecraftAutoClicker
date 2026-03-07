@@ -28,14 +28,26 @@ void Renderer::SetStage(HWND hWnd)
             kLeft, btnY - (2*kRowStride),
             kTextWidth
         );
+        chkDebugPanel->SetChecked(true);
 
-        delete chkDebugDialog;
-        chkDebugDialog = new FixedCheckbox(
+        delete chkControlDialog;
+        chkControlDialog = new FixedCheckbox(
             mHWnd, mGfx,
-            L"Show Debug Dialog",
+            L"Show Control Dialog",
             kLeft, btnY - kRowStride,
             kTextWidth
         );
+        chkControlDialog->SetChecked(true);
+
+        RECT rc;
+        GetClientRect(mHWnd, &rc);
+        float winW = static_cast<float>(rc.right - rc.left);
+        float knobR = 36.0f;
+        float knobCx = winW * 0.5f;
+        float knobCy = 70.0f;           
+        delete knobCps;
+        knobCps = new CpsKnob(mHWnd, mGfx, knobCx, knobCy, knobR);
+        knobCps->SetValue(18);
     }
 }
 
@@ -70,8 +82,9 @@ void MainWindowRenderer::Render()
     this->BaseRender();
     mGfx->BeginDraw(); 
     mGfx->ClearScreen(D2D1::ColorF(0.96f, 0.94f, 0.90f));
+    if (knobCps)        knobCps->render();
     if (chkDebugPanel)  chkDebugPanel->render();
-    if (chkDebugDialog) chkDebugDialog->render();
+    if (chkControlDialog) chkControlDialog->render();
     if (btnInject) btnInject->render();
     mGfx->EndDraw();
 }
@@ -79,25 +92,29 @@ void MainWindowRenderer::Render()
 void Renderer::OnMouseMove(float mx, float my) {
     if (btnInject)     btnInject->OnMouseMove(mx, my);
     if (chkDebugPanel)  chkDebugPanel->OnMouseMove(mx, my);
-    if (chkDebugDialog) chkDebugDialog->OnMouseMove(mx, my);
+    if (chkControlDialog) chkControlDialog->OnMouseMove(mx, my);
+    if (knobCps)        knobCps->OnMouseMove(mx, my);
 }
 
 void Renderer::OnMouseDown(float mx, float my) {
     if (btnInject)     btnInject->OnMouseDown(mx, my);
     if (chkDebugPanel)  chkDebugPanel->OnMouseDown(mx, my);
-    if (chkDebugDialog) chkDebugDialog->OnMouseDown(mx, my);
+    if (chkControlDialog) chkControlDialog->OnMouseDown(mx, my);
+    if (knobCps)        knobCps->OnMouseDown(mx, my);
 }
 
 void Renderer::OnMouseUp(float mx, float my) {
     if (btnInject)     btnInject->OnMouseUp(mx, my);
     if (chkDebugPanel)  chkDebugPanel->OnMouseUp(mx, my);
-    if (chkDebugDialog) chkDebugDialog->OnMouseUp(mx, my);
+    if (chkControlDialog) chkControlDialog->OnMouseUp(mx, my);
+    if (knobCps)        knobCps->OnMouseUp(mx, my);
 }
 
 void Renderer::OnMouseLeave() {
     if (btnInject)     btnInject->OnMouseLeave();
     if (chkDebugPanel)  chkDebugPanel->OnMouseLeave();
-    if (chkDebugDialog) chkDebugDialog->OnMouseLeave();
+    if (chkControlDialog) chkControlDialog->OnMouseLeave();
+    if (knobCps)        knobCps->OnMouseLeave();
 }
 
 #pragma warning(pop)

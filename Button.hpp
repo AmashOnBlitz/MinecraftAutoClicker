@@ -21,11 +21,12 @@ public:
     virtual void OnMouseLeave(); 
 
     void SetOnClick(std::function<void()> cb) { mOnClick = cb; }
+    void SetDisabled(bool disabled);
 
 protected:
     virtual bool HitTest(float mx, float my) = 0;
 
-    enum class State { Normal, Hover, Pressed };
+    enum class State { Normal, Hover, Pressed, Disabled };
     State mState = State::Normal;
 
     HWND mHwnd;

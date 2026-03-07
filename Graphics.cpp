@@ -2,10 +2,13 @@
 #include "dwrite.h"
 #include <string>
 #include "windows.h"
+#include <cmath>
 
 #define CHECK_HR_OK if (FAILED(hr)) return setInit(false);
 #define GUARD_NO_INIT if (!misInit) return;
 static bool isFactInit = false;
+
+static constexpr float kGfxPi = 3.14159265358979323846f;
 
 #pragma region Initializers 
 
@@ -112,6 +115,59 @@ void Graphics::drawCircle(float x, float y, float radiusX, float radiusY,
     mpRend->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(x, y), radiusX, radiusY), mpBrush, strokeW);
 }
 
+void Graphics::FillCircle(float cx, float cy, float r, D2D1::ColorF color)
+{
+    GUARD_NO_INIT;
+    mpBrush->SetColor(color);
+    mpRend->FillEllipse(
+        D2D1::Ellipse(D2D1::Point2F(cx, cy), r, r),
+        mpBrush
+    );
+}
+
+void Graphics::DrawArc(float cx, float cy, float r,
+                       float startAngleDeg, float sweepDeg,
+                       D2D1::ColorF color, float strokeW)
+{
+    GUARD_NO_INIT;
+
+    ID2D1PathGeometry* pPath = nullptr;
+    HRESULT hr = mpfact->CreatePathGeometry(&pPath);
+    if (FAILED(hr) || !pPath) return;
+
+    ID2D1GeometrySink* pSink = nullptr;
+    hr = pPath->Open(&pSink);
+    if (FAILED(hr) || !pSink) { pPath->Release(); return; }
+
+    float startRad = startAngleDeg * kGfxPi / 180.0f;
+    float endRad = (startAngleDeg + sweepDeg) * kGfxPi / 180.0f;
+
+    D2D1_POINT_2F startPt = D2D1::Point2F(
+        cx + r * std::cosf(startRad),
+        cy + r * std::sinf(startRad));
+
+    D2D1_POINT_2F endPt = D2D1::Point2F(
+        cx + r * std::cosf(endRad),
+        cy + r * std::sinf(endRad));
+
+    pSink->BeginFigure(startPt, D2D1_FIGURE_BEGIN_HOLLOW);
+    pSink->AddArc(D2D1::ArcSegment(
+        endPt,
+        D2D1::SizeF(r, r),
+        0.0f,
+        D2D1_SWEEP_DIRECTION_CLOCKWISE,
+        sweepDeg > 180.0f ? D2D1_ARC_SIZE_LARGE : D2D1_ARC_SIZE_SMALL
+    ));
+    pSink->EndFigure(D2D1_FIGURE_END_OPEN);
+    pSink->Close();
+
+    mpBrush->SetColor(color);
+    mpRend->DrawGeometry(pPath, mpBrush, strokeW);
+
+    pSink->Release();
+    pPath->Release();
+}
+
 void Graphics::FillRoundedRect(float x, float y, float w, float h,
                                float radius, D2D1::ColorF color)
 {
@@ -136,7 +192,7 @@ void Graphics::DrawRoundedRect(float x, float y, float w, float h,
     mpRend->DrawRoundedRectangle(rect, mpBrush, strokeW);
 }
 
-void Graphics::DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF color, float strokeW){
+void Graphics::DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF color, float strokeW) {
     GUARD_NO_INIT;
     mpBrush->SetColor(color);
     mpRend->DrawLine(

@@ -5,6 +5,7 @@
 #include "Graphics.hpp"
 #include "Button.hpp"
 #include "Checkbox.hpp"
+#include "knob.hpp"
 
 class Renderer {
 public:
@@ -27,7 +28,8 @@ public:
 public:
     BottomPaddedButton* btnInject;
     FixedCheckbox* chkDebugPanel;
-    FixedCheckbox* chkDebugDialog;
+    FixedCheckbox* chkControlDialog;
+    CpsKnob* knobCps;
 protected:
     HWND mHWnd;
     Graphics* mGfx;

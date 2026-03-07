@@ -72,8 +72,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	::ShowWindow(hWnd, iCmdShow);
 	::UpdateWindow(hWnd);
 
-	ObjectManager::GetMainRenderer().btnInject->SetOnClick([]() {
-		MessageBox(nullptr, L"Injected!", L"Success", MB_OK);
+	ObjectManager::GetMainRenderer().btnInject->SetOnClick([hWnd]() {
+		MessageBox(hWnd, L"Injected!", L"Success", MB_OK | MB_APPLMODAL);
 														   });
 
 	while (::GetMessage(&msg, NULL, 0, 0)) {
