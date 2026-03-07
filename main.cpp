@@ -1,6 +1,8 @@
 #include "Windows.h"
 #include "tchar.h"
 #include "strsafe.h"
+#include "Renderer.hpp"
+#include "RenderManager.hpp"
 
 LRESULT CALLBACK fnWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -41,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		WS_EX_OVERLAPPEDWINDOW,
 		szMainWndName,
 		szMainWndName,
-		WS_OVERLAPPEDWINDOW,
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		300,
@@ -78,15 +80,41 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	return 1;
 }
 
+void HandleCreate(
+	HWND hwnd,
+	UINT msg,
+	WPARAM wParam,
+	LPARAM lParam
+) {
+	ObjectManager::GetMainRenderer().SetStage(hwnd);
+}
+
+void HandleMainWndPaint(
+	HWND hwnd,
+	UINT msg,
+	WPARAM wParam,
+	LPARAM lParam
+) {
+	ObjectManager::GetMainRenderer().Render();
+}
 
 LRESULT CALLBACK fnWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg)
 	{
+	case WM_CREATE:
+		HandleCreate(hwnd, msg, wParam, lParam);
+		return 1;
+	case WM_PAINT:
+		PAINTSTRUCT ps;
+		BeginPaint(hwnd, &ps);
+		HandleMainWndPaint(hwnd, msg, wParam, lParam);
+		EndPaint(hwnd, &ps);
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 1;
 	default:
 		break;
 	}
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
