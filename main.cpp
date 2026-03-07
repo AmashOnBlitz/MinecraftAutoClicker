@@ -72,6 +72,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	::ShowWindow(hWnd, iCmdShow);
 	::UpdateWindow(hWnd);
 
+	ObjectManager::GetMainRenderer().btnInject->SetOnClick([]() {
+		MessageBox(nullptr, L"Injected!", L"Success", MB_OK);
+														   });
+
 	while (::GetMessage(&msg, NULL, 0, 0)) {
 		::TranslateMessage(&msg);
 		::DispatchMessage(&msg);
@@ -113,6 +117,23 @@ LRESULT CALLBACK fnWinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 1;
+	case WM_MOUSEMOVE: {
+		float mx = (float)LOWORD(lParam);
+		float my = (float)HIWORD(lParam);
+		ObjectManager::GetMainRenderer().OnMouseMove(mx, my);
+		TRACKMOUSEEVENT tme = { sizeof(tme), TME_LEAVE, hwnd, 0 };
+		TrackMouseEvent(&tme);
+		return 0;
+	}
+	case WM_MOUSELEAVE:
+		ObjectManager::GetMainRenderer().OnMouseLeave();
+		return 0;
+	case WM_LBUTTONDOWN:
+		ObjectManager::GetMainRenderer().OnMouseDown((float)LOWORD(lParam), (float)HIWORD(lParam));
+		return 0;
+	case WM_LBUTTONUP:
+		ObjectManager::GetMainRenderer().OnMouseUp((float)LOWORD(lParam), (float)HIWORD(lParam));
+		return 0;
 	default:
 		break;
 	}

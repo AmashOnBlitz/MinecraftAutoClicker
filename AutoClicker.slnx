@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="AutoClicker.vcxproj" />
+  <Project Path="AutoClicker.vcxproj" Id="6ba2ecfa-abc1-4743-826f-d4175877ad55" />
 </Solution>

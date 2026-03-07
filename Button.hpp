@@ -3,6 +3,7 @@
 #define BUTTON_CLASS_HEADER
 
 #include <string>
+#include <functional>
 #include "Graphics.hpp"
 
 class Button {
@@ -14,15 +15,29 @@ public:
     virtual ~Button() = default;
     virtual void render();
 
+    virtual void OnMouseMove(float mx, float my);
+    virtual void OnMouseDown(float mx, float my);
+    virtual void OnMouseUp(float mx, float my);
+    virtual void OnMouseLeave(); 
+
+    void SetOnClick(std::function<void()> cb) { mOnClick = cb; }
+
 protected:
-    HWND          mHwnd;
+    virtual bool HitTest(float mx, float my) = 0;
+
+    enum class State { Normal, Hover, Pressed };
+    State mState = State::Normal;
+
+    HWND mHwnd;
     Graphics* mGfx;
     std::wstring  mLabel;
-    D2D1::ColorF  mBgColor;
+    D2D1::ColorF  mBgColor;    
     D2D1::ColorF  mTextColor;
+    std::function<void()> mOnClick;
+
+    D2D1::ColorF CurrentBgColor() const;
 };
 
-// Stretches edge-to-edge with equal padding on left, right, and bottom
 class BottomPaddedButton : public Button {
 public:
     BottomPaddedButton(HWND hwnd, Graphics* gfx,
@@ -33,7 +48,12 @@ public:
                        D2D1::ColorF textColor = D2D1::ColorF(D2D1::ColorF::White));
     void render() override;
 
+protected:
+    bool HitTest(float mx, float my) override;
+
 private:
+    void GetRect(float& outX, float& outY, float& outW, float& outH) const;
+
     float mPadding;
     float mHeight;
 };

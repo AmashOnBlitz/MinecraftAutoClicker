@@ -5,7 +5,14 @@
 
 void Renderer::SetStage(HWND hWnd)
 {
-    if (mHWnd != hWnd) mHWnd = hWnd;
+    if (mHWnd != hWnd) {
+        mHWnd = hWnd;
+        delete mGfx;
+        mGfx = new Graphics(hWnd);
+
+        delete btnInject;
+        btnInject = new BottomPaddedButton(mHWnd, mGfx, L"Inject", 16.0f, 40.0f);
+    }
 }
 
 void Renderer::Render()
@@ -39,7 +46,13 @@ void MainWindowRenderer::Render()
     this->BaseRender();
     mGfx->BeginDraw(); 
     mGfx->ClearScreen(D2D1::ColorF(0.96f, 0.94f, 0.90f));
+    btnInject->render();
     mGfx->EndDraw();
 }
+
+void Renderer::OnMouseMove(float mx, float my) { if (btnInject) btnInject->OnMouseMove(mx, my); }
+void Renderer::OnMouseDown(float mx, float my) { if (btnInject) btnInject->OnMouseDown(mx, my); }
+void Renderer::OnMouseUp(float mx, float my) { if (btnInject) btnInject->OnMouseUp(mx, my); }
+void Renderer::OnMouseLeave() { if (btnInject) btnInject->OnMouseLeave(); }
 
 #pragma warning(pop)

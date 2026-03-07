@@ -4,6 +4,7 @@
 #include <d2d1.h>
 #include <string>
 #include "windows.h"
+#include <dwrite.h>
 
 class Graphics final {
 public:
@@ -20,7 +21,7 @@ public:
     void drawCircle(float x, float y, float xradius, float yradius, D2D1::ColorF color, float strokeW = 1.0f);
     void FillRoundedRect(float x, float y, float w, float h, float radius, D2D1::ColorF color);
     void DrawTextCentered(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize = 14.0f);
-
+    void SetAliased(bool aliased);
 private: // funtions
     bool setInit(bool b);
     template <typename t>

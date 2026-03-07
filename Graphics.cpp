@@ -127,10 +127,6 @@ void Graphics::FillRoundedRect(float x, float y, float w, float h, float radius,
     mpRend->FillRoundedRectangle(rect, mpBrush);
 }
 
-void Graphics::DrawTextCentered(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize)
-{
-}
-
 #pragma region Private Functions
 
 bool Graphics::setInit(bool b)
@@ -139,11 +135,8 @@ bool Graphics::setInit(bool b)
     return b;
 }
 
-void Graphics::DrawTextCentered(const std::wstring& text,
-                                float x, float y,
-                                float w, float h,
-                                D2D1::ColorF color,
-                                float fontSize)
+
+void Graphics::DrawTextCentered(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize)
 {
     GUARD_NO_INIT;
 
@@ -170,4 +163,11 @@ void Graphics::DrawTextCentered(const std::wstring& text,
     );
 
     pFmt->Release();
+}
+
+void Graphics::SetAliased(bool aliased) {
+    GUARD_NO_INIT;
+    mpRend->SetAntialiasMode(aliased
+                             ? D2D1_ANTIALIAS_MODE_ALIASED
+                             : D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
