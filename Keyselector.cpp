@@ -28,8 +28,8 @@ KeySelector::KeySelector(HWND parentHwnd, Graphics* gfx,
         mRDrop->AddItem(kKeyNames[i], kVkCodes[i]);
     }
 
-    mLDrop->SetSelectedIndex(0);
-    mRDrop->SetSelectedIndex(1);
+    mLDrop->SetSelectedIndex(8);
+    mRDrop->SetSelectedIndex(9);
 }
 
 KeySelector::~KeySelector() {

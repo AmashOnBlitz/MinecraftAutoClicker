@@ -70,9 +70,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	::UpdateWindow(hWnd);
 
 	ObjectManager::GetMainRenderer().btnInject->SetOnClick([hWnd]() {
-		
+		fs::path dllPath = fs::absolute("Addon.dll");
+		if (!fs::exists(dllPath)){
+			MessageBox(
+				hWnd,
+				_TEXT("Addon Dll does not exist (addon.dll) \nTry reinstalling the app"),
+				_TEXT("ERROR : DLL Not Found"),
+				MB_ICONERROR | MB_APPLMODAL | MB_OK
+			);
+			return;
+		}
 		int PID = ObjectManager::GetMainRenderer().pidInput->GetPid();
-		HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, PID);
+		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
 		if(hProcess == nullptr || hProcess == INVALID_HANDLE_VALUE) {
 			MessageBox(
 				hWnd,
@@ -80,8 +89,49 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 				_TEXT("Failure"),
 				MB_ICONERROR | MB_APPLMODAL | MB_OK
 			);
-			return 1;
+			return;
 		}
+		void* memLoc = ::VirtualAllocEx(hProcess, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		if (memLoc == nullptr){
+			MessageBox(
+				hWnd,
+				_TEXT("Failed to allocate memory in remote process"),
+				_TEXT("Access Denied"),
+				MB_ICONERROR | MB_APPLMODAL | MB_OK
+			);
+			return;
+		}
+		std::string dllPathStr = dllPath.string();
+		BOOL b = FALSE;
+		b = ::WriteProcessMemory(hProcess, memLoc, dllPathStr.c_str(), dllPathStr.size() + 1, 0);
+		if (b == FALSE) {
+			MessageBox(
+				hWnd,
+				_TEXT("Failed to write in the remotely allocated memory"),
+				_TEXT("Access Denied"),
+				MB_ICONERROR | MB_APPLMODAL | MB_OK
+			);
+			return;
+		}
+
+		HANDLE hThread = ::CreateRemoteThread(hProcess, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, memLoc, 0, 0);
+
+		if (hThread == INVALID_HANDLE_VALUE || hThread == nullptr) {
+			MessageBox(
+				hWnd,
+				_TEXT("Failed to create thread in remote process"),
+				_TEXT("Access Denied"),
+				MB_ICONERROR | MB_APPLMODAL | MB_OK
+			);
+			return;
+		}
+		else {
+			::CloseHandle(hThread);
+		}
+		if (hProcess) {
+			::CloseHandle(hProcess);
+		}
+
 		MessageBox(hWnd, L"Injected!", L"Success", MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
 														   });
 
