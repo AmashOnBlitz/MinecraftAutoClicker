@@ -97,4 +97,25 @@ public:
     int GetCps() const { return static_cast<int>(GetValue() + 0.5f); }
 };
 
+
+class CooldownKnob : public FixedKnob {
+public:
+    CooldownKnob(HWND hwnd, Graphics* gfx,
+                 float cx, float cy,
+                 float radius = 36.0f);
+
+    float GetCooldown() const { return GetValue(); }
+};
+
+
+class TriggerCooldownKnob : public FixedKnob {
+public:
+    TriggerCooldownKnob(HWND hwnd, Graphics* gfx,
+                        float cx, float cy,
+                        float radius = 36.0f);
+
+    float GetTriggerCooldown() const { return GetValue(); }
+};
+
+
 #endif //!KNOB_CLASS_HEADER

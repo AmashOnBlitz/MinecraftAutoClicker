@@ -133,9 +133,13 @@
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Checkbox.cpp" />
+    <ClCompile Include="CustomDropdown.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="IntBox.cpp" />
+    <ClCompile Include="Keyselector.cpp" />
     <ClCompile Include="knob.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PidInput.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +149,11 @@
   <ItemGroup>
     <ClInclude Include="Button.hpp" />
     <ClInclude Include="Checkbox.hpp" />
+    <ClInclude Include="CustomDropdown.hpp" />
+    <ClInclude Include="IntBox.hpp" />
+    <ClInclude Include="Keyselector.hpp" />
     <ClInclude Include="knob.hpp" />
+    <ClInclude Include="PidInput.hpp" />
     <ClInclude Include="RenderManager.hpp" />
     <ClInclude Include="Graphics.hpp" />
     <ClInclude Include="Renderer.hpp" />

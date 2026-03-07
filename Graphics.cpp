@@ -44,7 +44,6 @@ bool Graphics::Init()
         &mpRend
     );
     CHECK_HR_OK;
-
     hr = mpRend->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &mpBrush);
     CHECK_HR_OK;
 

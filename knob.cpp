@@ -88,7 +88,7 @@ void Knob::DrawWidget(float cx, float cy, float radius)
     mGfx->DrawTextCentered(mLabel, labelX, labelY, labelW, 15.0f, mTextColor, 11.0f);
 
     wchar_t buf[16];
-    swprintf_s(buf, L"%.0f", mValue);
+    swprintf_s(buf, L"%.1f", mValue);
     mGfx->DrawTextCentered(std::wstring(buf),
                            labelX, labelY + 15.0f,
                            labelW, 15.0f,
@@ -181,13 +181,40 @@ void FixedKnob::render()
     DrawWidget(mCx, mCy, mRadius);
 }
 
+
 CpsKnob::CpsKnob(HWND hwnd, Graphics* gfx,
                  float cx, float cy, float radius)
     : FixedKnob(hwnd, gfx,
                 L"CPS",
                 cx, cy, radius,
-                10.0f,
-                20.0f,
-                10.0f)
+                10.0f, 20.0f, 10.0f)
+{
+}
+
+
+CooldownKnob::CooldownKnob(HWND hwnd, Graphics* gfx,
+                           float cx, float cy, float radius)
+    : FixedKnob(hwnd, gfx,
+                L"Cooldown Time",
+                cx, cy, radius,
+                1.0f, 3.0f, 1.0f,
+                D2D1::ColorF(0.70f, 0.70f, 0.72f),
+                D2D1::ColorF(0.80f, 0.50f, 0.10f),          
+                D2D1::ColorF(D2D1::ColorF::White),           
+                D2D1::ColorF(D2D1::ColorF::Black))           
+{
+}
+
+
+TriggerCooldownKnob::TriggerCooldownKnob(HWND hwnd, Graphics* gfx,
+                                         float cx, float cy, float radius)
+    : FixedKnob(hwnd, gfx,
+                L"Cooldown After",
+                cx, cy, radius,
+                4.0f, 7.0f, 4.0f,
+                D2D1::ColorF(0.70f, 0.70f, 0.72f),
+                D2D1::ColorF(0.12f, 0.60f, 0.55f),          
+                D2D1::ColorF(D2D1::ColorF::White),           
+                D2D1::ColorF(D2D1::ColorF::Black))           
 {
 }
