@@ -47,13 +47,12 @@ public:
                        D2D1::ColorF bgColor = D2D1::ColorF(0.20f, 0.47f, 0.75f),
                        D2D1::ColorF textColor = D2D1::ColorF(D2D1::ColorF::White));
     void render() override;
+    void GetRect(float& outX, float& outY, float& outW, float& outH) const;
 
 protected:
     bool HitTest(float mx, float my) override;
 
 private:
-    void GetRect(float& outX, float& outY, float& outW, float& outH) const;
-
     float mPadding;
     float mHeight;
 };

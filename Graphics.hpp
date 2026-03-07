@@ -22,6 +22,9 @@ public:
     void FillRoundedRect(float x, float y, float w, float h, float radius, D2D1::ColorF color);
     void DrawTextCentered(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize = 14.0f);
     void SetAliased(bool aliased);
+    void DrawRoundedRect(float x, float y, float w, float h, float radius, D2D1::ColorF color, float strokeW = 1.0f);
+    void DrawTextLeft(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize = 14.0f);
+    void DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF color, float strokeW);
 private: // funtions
     bool setInit(bool b);
     template <typename t>

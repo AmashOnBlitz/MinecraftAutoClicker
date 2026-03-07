@@ -60,6 +60,8 @@ bool Graphics::IsInit()
     return misInit;
 }
 
+#pragma endregion
+
 #pragma region Draw Functions
 
 void Graphics::BeginDraw()
@@ -94,38 +96,58 @@ void Graphics::ClearScreen(D2D1::ColorF color)
     mpRend->Clear(D2D1::ColorF(color));
 }
 
-void Graphics::drawCircle(float x, float y, float radiusX, float radiusY, float r, float g, float b, float a, float strokeW)
+void Graphics::drawCircle(float x, float y, float radiusX, float radiusY,
+                          float r, float g, float b, float a, float strokeW)
 {
     GUARD_NO_INIT;
     mpBrush->SetColor(D2D1::ColorF(r, g, b, a));
     mpRend->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(x, y), radiusX, radiusY), mpBrush, strokeW);
 }
 
-void Graphics::drawCircle(float x, float y, float radiusX, float radiusY, D2D1::ColorF color, float strokeW)
+void Graphics::drawCircle(float x, float y, float radiusX, float radiusY,
+                          D2D1::ColorF color, float strokeW)
 {
     GUARD_NO_INIT;
     mpBrush->SetColor(D2D1::ColorF(color));
     mpRend->DrawEllipse(D2D1::Ellipse(D2D1::Point2F(x, y), radiusX, radiusY), mpBrush, strokeW);
 }
 
-void Graphics::FillRoundedRect(float x, float y, float w, float h, float radius, D2D1::ColorF color)
+void Graphics::FillRoundedRect(float x, float y, float w, float h,
+                               float radius, D2D1::ColorF color)
 {
     GUARD_NO_INIT;
     mpBrush->SetColor(color);
-
     D2D1_ROUNDED_RECT rect = D2D1::RoundedRect(
-        D2D1::RectF(
-            x,
-            y,
-            x + w,
-            y + h
-        ),
-        radius,
-        radius
+        D2D1::RectF(x, y, x + w, y + h),
+        radius, radius
     );
-
     mpRend->FillRoundedRectangle(rect, mpBrush);
 }
+
+void Graphics::DrawRoundedRect(float x, float y, float w, float h,
+                               float radius, D2D1::ColorF color, float strokeW)
+{
+    GUARD_NO_INIT;
+    mpBrush->SetColor(color);
+    D2D1_ROUNDED_RECT rect = D2D1::RoundedRect(
+        D2D1::RectF(x, y, x + w, y + h),
+        radius, radius
+    );
+    mpRend->DrawRoundedRectangle(rect, mpBrush, strokeW);
+}
+
+void Graphics::DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF color, float strokeW){
+    GUARD_NO_INIT;
+    mpBrush->SetColor(color);
+    mpRend->DrawLine(
+        D2D1::Point2F(x1, y1),
+        D2D1::Point2F(x2, y2),
+        mpBrush,
+        strokeW
+    );
+}
+
+#pragma endregion
 
 #pragma region Private Functions
 
@@ -135,13 +157,18 @@ bool Graphics::setInit(bool b)
     return b;
 }
 
-
-void Graphics::DrawTextCentered(const std::wstring& text, float x, float y, float w, float h, D2D1::ColorF color, float fontSize)
+static void DrawTextInternal(
+    ID2D1HwndRenderTarget* pRend,
+    IDWriteFactory* pDWrite,
+    ID2D1SolidColorBrush* pBrush,
+    const std::wstring& text,
+    float x, float y, float w, float h,
+    D2D1::ColorF color,
+    float fontSize,
+    DWRITE_TEXT_ALIGNMENT hAlign)
 {
-    GUARD_NO_INIT;
-
     IDWriteTextFormat* pFmt = nullptr;
-    HRESULT hr = mpDWriteFactory->CreateTextFormat(
+    HRESULT hr = pDWrite->CreateTextFormat(
         L"Segoe UI", nullptr,
         DWRITE_FONT_WEIGHT_SEMI_BOLD,
         DWRITE_FONT_STYLE_NORMAL,
@@ -150,24 +177,46 @@ void Graphics::DrawTextCentered(const std::wstring& text, float x, float y, floa
     );
     if (FAILED(hr) || !pFmt) return;
 
-    pFmt->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    pFmt->SetTextAlignment(hAlign);
     pFmt->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-    mpBrush->SetColor(color);
-    mpRend->DrawText(
+    pBrush->SetColor(color);
+    pRend->DrawText(
         text.c_str(),
         static_cast<UINT32>(text.size()),
         pFmt,
         D2D1::RectF(x, y, x + w, y + h),
-        mpBrush
+        pBrush
     );
-
     pFmt->Release();
 }
 
-void Graphics::SetAliased(bool aliased) {
+void Graphics::DrawTextCentered(const std::wstring& text,
+                                float x, float y, float w, float h,
+                                D2D1::ColorF color, float fontSize)
+{
+    GUARD_NO_INIT;
+    DrawTextInternal(mpRend, mpDWriteFactory, mpBrush,
+                     text, x, y, w, h, color, fontSize,
+                     DWRITE_TEXT_ALIGNMENT_CENTER);
+}
+
+void Graphics::DrawTextLeft(const std::wstring& text,
+                            float x, float y, float w, float h,
+                            D2D1::ColorF color, float fontSize)
+{
+    GUARD_NO_INIT;
+    DrawTextInternal(mpRend, mpDWriteFactory, mpBrush,
+                     text, x, y, w, h, color, fontSize,
+                     DWRITE_TEXT_ALIGNMENT_LEADING);
+}
+
+void Graphics::SetAliased(bool aliased)
+{
     GUARD_NO_INIT;
     mpRend->SetAntialiasMode(aliased
                              ? D2D1_ANTIALIAS_MODE_ALIASED
                              : D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
+
+#pragma endregion

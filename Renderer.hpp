@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include "Graphics.hpp"
 #include "Button.hpp"
+#include "Checkbox.hpp"
 
 class Renderer {
 public:
@@ -25,6 +26,8 @@ public:
     void OnMouseLeave();
 public:
     BottomPaddedButton* btnInject;
+    FixedCheckbox* chkDebugPanel;
+    FixedCheckbox* chkDebugDialog;
 protected:
     HWND mHWnd;
     Graphics* mGfx;
