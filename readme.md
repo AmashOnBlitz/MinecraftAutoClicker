@@ -30,7 +30,7 @@ The control panel is fully custom-drawn using Direct2D — sliders, rotary knobs
 |---|---|
 | CPS | 10 – 22 |
 | Click mode | Left / Right (mutually exclusive toggle) |
-| Humanization | Jitter, micro-bursts, drift simulation |
+| Humanization | Jitter, micro-bursts, drift simulation (fixed)|
 | Trigger cooldown | Configurable |
 | Cooldown period | Configurable |
 | Keybinds | F1–F12 + Middle Mouse, remappable in-app |
