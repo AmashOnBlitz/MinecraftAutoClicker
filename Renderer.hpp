@@ -8,6 +8,7 @@
 #include "knob.hpp"
 #include "PidInput.hpp"
 #include "KeySelector.hpp"
+#include "CustomDropdown.hpp"
 
 class Renderer {
 public:
@@ -21,7 +22,10 @@ public:
         knobCooldown(nullptr),
         knobTriggerCooldown(nullptr),
         pidInput(nullptr),
-        keySelector(nullptr)
+        keySelector(nullptr),
+        ddDebugToggleKey(nullptr),
+        ddControlToggleKey(nullptr),
+        mMouseOwner(MouseOwner::None)
     {
     }
 
@@ -29,6 +33,8 @@ public:
         delete mGfx;
         delete pidInput;
         delete keySelector;
+        delete ddDebugToggleKey;
+        delete ddControlToggleKey;
     }
 
     virtual void SetStage(HWND hWnd);
@@ -56,10 +62,22 @@ public:
     TriggerCooldownKnob* knobTriggerCooldown;
     PidInput* pidInput;
     KeySelector* keySelector;
+    CustomDropdown* ddDebugToggleKey;
+    CustomDropdown* ddControlToggleKey;
 
 protected:
     HWND      mHWnd;
     Graphics* mGfx;
+
+private:
+    enum class MouseOwner {
+        None,
+        KeySelector,
+        DebugToggleDrop,
+        ControlToggleDrop,
+        Other         
+    };
+    MouseOwner mMouseOwner;
 };
 
 class MainWindowRenderer : public Renderer {

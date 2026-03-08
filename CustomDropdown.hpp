@@ -10,7 +10,8 @@ class CustomDropdown {
 public:
     CustomDropdown(HWND hwnd, Graphics* gfx,
                    float x, float y, float w,
-                   float headerH = 28.0f, float itemH = 24.0f);
+                   float headerH = 28.0f, float itemH = 24.0f,
+                   int maxVisible = 5);
 
     void AddItem(const std::wstring& label, int value);
     void SetSelectedIndex(int idx);
@@ -40,6 +41,7 @@ private:
     HWND      mHwnd;
     Graphics* mGfx;
     float     mX, mY, mW, mHeaderH, mItemH;
+    int       mMaxVisible;  
 
     std::vector<Item> mItems;
     int  mSelectedIdx = 0;
@@ -48,7 +50,6 @@ private:
     bool mHeaderHover = false;
     int  mScrollOffset = 0;
 
-    static constexpr int   kMaxVisible = 5;
     static constexpr float kRadius = 6.0f;
     static constexpr float kFontSize = 12.0f;
     static constexpr float kPadX = 10.0f;

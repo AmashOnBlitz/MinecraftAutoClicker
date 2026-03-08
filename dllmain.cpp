@@ -20,6 +20,11 @@ bool g_leftEnabled = false;
 bool g_rightEnabled = false;
 Graphics* Gfx = nullptr;
 
+static HWND g_overlayHwnd = nullptr;  
+static HWND g_controlHwnd = nullptr;  
+static bool g_debugVisible = true;
+static bool g_controlVisible = true;
+
 
 int GetHumanClickDelay(int minCPS = 15, int maxCPS = 20)
 {
@@ -46,7 +51,7 @@ int GetHumanClickDelay(int minCPS = 15, int maxCPS = 20)
     if (clickCounter % (10 + gen() % 30) == 0)
         delay += 5 + gen() % 12;
 
-    // --- hesitation & burst  ---
+    // --- hesitation & burst ---
     std::uniform_int_distribution<> chance(1, 100);
     int roll = chance(gen);
 
@@ -55,7 +60,7 @@ int GetHumanClickDelay(int minCPS = 15, int maxCPS = 20)
     else if (roll <= 8)
         delay -= 3 + gen() % 6;
 
-    // --- random drops  ---
+    // --- random drops ---
     if (chance(gen) <= 2)
         delay += 50 + gen() % 100;
 
@@ -109,6 +114,9 @@ DWORD WINAPI DebugThread(LPVOID)
     SetWindowPos(hOverlay, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     ShowWindow(hOverlay, SW_SHOWNOACTIVATE);
 
+    g_overlayHwnd = hOverlay;
+    g_debugVisible = true;
+
     Gfx = new Graphics(hOverlay);
     if (!Gfx->Init()) { delete Gfx; Gfx = nullptr; return 0; }
 
@@ -121,7 +129,7 @@ DWORD WINAPI DebugThread(LPVOID)
         }
         if (!g_hwnd) break;
         GetClientRect(g_hwnd, &rect);
-        int newW = (rect.right - rect.left) * 2 / 3;
+        int newW = (rect.right - rect.left) * 3 / 4;
         if (newW != wFact) {
             wFact = newW;
             SetWindowPos(hOverlay, HWND_TOP, 0, 0, wFact, hFact, SWP_NOMOVE | SWP_NOACTIVATE);
@@ -138,7 +146,6 @@ DWORD WINAPI DebugThread(LPVOID)
 
         wchar_t buf[64];
         float colW = wFact / 3.0f;
-        float lastColW = wFact - colW * 2;
 
         int col0x = 0, col0w = wFact / 3;
         int col1x = col0w, col1w = wFact / 3;
@@ -162,7 +169,8 @@ DWORD WINAPI DebugThread(LPVOID)
     return 0;
 }
 
-DWORD WINAPI ControlPanelThread(LPVOID) {
+DWORD WINAPI ControlPanelThread(LPVOID)
+{
     return 0;
 }
 
@@ -171,9 +179,7 @@ bool IsKeyPressedOnce(int vk)
     static SHORT lastState[256] = {};
 
     SHORT state = GetAsyncKeyState(vk);
-
     bool pressed = (state & 0x8000) && !(lastState[vk] & 0x8000);
-
     lastState[vk] = state;
 
     return pressed;
@@ -186,18 +192,31 @@ DWORD WINAPI CPSThread(LPVOID)
     {
         if (IsKeyPressedOnce(g_cfg.lClickVK)) {
             g_leftEnabled = !g_leftEnabled;
-            if (g_leftEnabled && g_rightEnabled) {
-                g_rightEnabled = !g_rightEnabled;
-            }
+            if (g_leftEnabled && g_rightEnabled)
+                g_rightEnabled = false;
         }
 
         if (IsKeyPressedOnce(g_cfg.rClickVK)) {
             g_rightEnabled = !g_rightEnabled;
-            if (g_leftEnabled && g_rightEnabled) {
-                g_leftEnabled = !g_leftEnabled;
+            if (g_leftEnabled && g_rightEnabled)
+                g_leftEnabled = false;
+        }
+
+        if (g_cfg.debugToggleVK && IsKeyPressedOnce(g_cfg.debugToggleVK)) {
+            if (g_overlayHwnd) {
+                g_debugVisible = !g_debugVisible;
+                ShowWindow(g_overlayHwnd,
+                           g_debugVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
             }
         }
 
+        if (g_cfg.controlToggleVK && IsKeyPressedOnce(g_cfg.controlToggleVK)) {
+            if (g_controlHwnd) {
+                g_controlVisible = !g_controlVisible;
+                ShowWindow(g_controlHwnd,
+                           g_controlVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
+            }
+        }
 
         if (g_leftEnabled)
         {
@@ -264,13 +283,15 @@ DWORD WINAPI MainThread(LPVOID)
         g_cfg.rClickVK = VK_F10;
         g_cfg.debugPanel = true;
         g_cfg.controlDialog = true;
+        g_cfg.debugToggleVK = VK_F11;
+        g_cfg.controlToggleVK = VK_F12;
     }
 
     EnumWindows(EnumWindowsProc, 0);
     InitializeCriticalSection(&g_statsLock);
     g_stats.avgCps = g_cfg.cps;
     CreateThread(nullptr, 0, CPSThread, nullptr, 0, nullptr);
-    if (g_cfg.debugPanel) CreateThread(nullptr, 0, DebugThread, nullptr, 0, nullptr);
+    if (g_cfg.debugPanel)    CreateThread(nullptr, 0, DebugThread, nullptr, 0, nullptr);
     if (g_cfg.controlDialog) CreateThread(nullptr, 0, ControlPanelThread, nullptr, 0, nullptr);
 
     return 0;

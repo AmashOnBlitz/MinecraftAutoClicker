@@ -4,10 +4,12 @@
 
 CustomDropdown::CustomDropdown(HWND hwnd, Graphics* gfx,
                                float x, float y, float w,
-                               float headerH, float itemH)
+                               float headerH, float itemH,
+                               int maxVisible)
     : mHwnd(hwnd), mGfx(gfx),
     mX(x), mY(y), mW(w),
-    mHeaderH(headerH), mItemH(itemH)
+    mHeaderH(headerH), mItemH(itemH),
+    mMaxVisible(maxVisible)
 {
 }
 
@@ -28,11 +30,11 @@ int CustomDropdown::GetSelectedValue() const {
 }
 
 int CustomDropdown::MaxVisibleItems() const {
-    return std::min(kMaxVisible, (int)mItems.size());
+    return std::min(mMaxVisible, (int)mItems.size());
 }
 
 void CustomDropdown::ClampScrollOffset() {
-    int maxOffset = std::max(0, (int)mItems.size() - kMaxVisible);
+    int maxOffset = std::max(0, (int)mItems.size() - mMaxVisible);
     mScrollOffset = std::clamp(mScrollOffset, 0, maxOffset);
 }
 
@@ -106,7 +108,7 @@ void CustomDropdown::Render() {
     if (mOpen) {
         int visible = MaxVisibleItems();
         int total = (int)mItems.size();
-        bool needBar = total > kMaxVisible;
+        bool needBar = total > mMaxVisible;
 
         float listY = mY + mHeaderH + 2.0f;
         float listH = visible * mItemH;
@@ -151,8 +153,8 @@ void CustomDropdown::Render() {
                                   kScrollBarW * 0.5f,
                                   D2D1::ColorF(0.85f, 0.85f, 0.87f));
 
-            float thumbH = std::max(16.0f, trackH * (float)kMaxVisible / (float)total);
-            float thumbT = trackTop + (trackH - thumbH) * (float)mScrollOffset / (float)(total - kMaxVisible);
+            float thumbH = std::max(16.0f, trackH * (float)mMaxVisible / (float)total);
+            float thumbT = trackTop + (trackH - thumbH) * (float)mScrollOffset / (float)(total - mMaxVisible);
 
             mGfx->FillRoundedRect(barX, thumbT, kScrollBarW, thumbH,
                                   kScrollBarW * 0.5f,

@@ -39,6 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		::MessageBox(NULL, szBuff, _TEXT("Internal Error"), MB_ICONERROR | MB_OK);
 		return 1;
 	}
+
 	hWnd = ::CreateWindowEx(
 		WS_EX_OVERLAPPEDWINDOW,
 		szMainWndName,
@@ -46,8 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		360,
-		550,
+		360, 550,
 		NULL,
 		NULL,
 		hInstance,
@@ -81,6 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			);
 			return;
 		}
+
 		int PID = ObjectManager::GetMainRenderer().pidInput->GetPid();
 		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
 		if (hProcess == nullptr || hProcess == INVALID_HANDLE_VALUE) {
@@ -92,6 +93,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			);
 			return;
 		}
+
 		void* memLoc = ::VirtualAllocEx(hProcess, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 		if (memLoc == nullptr) {
 			MessageBox(
@@ -102,9 +104,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			);
 			return;
 		}
+
 		std::string dllPathStr = dllPath.string();
-		BOOL b = FALSE;
-		b = ::WriteProcessMemory(hProcess, memLoc, dllPathStr.c_str(), dllPathStr.size() + 1, 0);
+		BOOL b = ::WriteProcessMemory(hProcess, memLoc, dllPathStr.c_str(), dllPathStr.size() + 1, 0);
 		if (b == FALSE) {
 			MessageBox(
 				hWnd,
@@ -115,7 +117,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 			return;
 		}
 
-		HANDLE hThread = ::CreateRemoteThread(hProcess, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, memLoc, 0, 0);
+		HANDLE hThread = ::CreateRemoteThread(
+			hProcess, 0, 0,
+			(LPTHREAD_START_ROUTINE)LoadLibraryA,
+			memLoc, 0, 0);
 
 		if (hThread == INVALID_HANDLE_VALUE || hThread == nullptr) {
 			MessageBox(
@@ -142,6 +147,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		cfg.rClickVK = r.keySelector ? r.keySelector->GetRClickVK() : VK_F10;
 		cfg.debugPanel = r.chkDebugPanel ? r.chkDebugPanel->IsChecked() : true;
 		cfg.controlDialog = r.chkControlDialog ? r.chkControlDialog->IsChecked() : true;
+		cfg.debugToggleVK = r.ddDebugToggleKey ? r.ddDebugToggleKey->GetSelectedValue() : VK_F11;
+		cfg.controlToggleVK = r.ddControlToggleKey ? r.ddControlToggleKey->GetSelectedValue() : VK_F12;
 		SaveConfig(cfg);
 
 		MessageBox(hWnd, L"Injected!", L"Success", MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);

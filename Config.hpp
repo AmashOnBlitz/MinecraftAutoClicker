@@ -11,6 +11,8 @@ struct AcConfig {
     int   rClickVK;
     bool  debugPanel;
     bool  controlDialog;
+    int   debugToggleVK;   
+    int   controlToggleVK; 
 };
 
 inline std::wstring GetConfigPath() {
