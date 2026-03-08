@@ -206,7 +206,7 @@ void ControlPanel::RenderSlidersPage() {
     };
     static const wchar_t* kUnits[3] = { L"", L"s", L"s" };
     static const float    kMins[3] = { 10.0f, 0.5f,  4.0f };
-    static const float    kMaxs[3] = { 22.0f, 3.0f, 10.0f };
+    static const float    kMaxs[3] = { 20.0f, 3.0f, 10.0f };
 
     Slider* sliders[3] = { mSliderCps, mSliderCooldown, mSliderTrigCD };
 
