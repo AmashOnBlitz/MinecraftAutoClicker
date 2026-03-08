@@ -5,6 +5,7 @@
 #include "RenderManager.hpp"
 #include <filesystem>
 #include "Config.hpp"
+#include "resource.h"
 
 namespace fs = std::filesystem;
 
@@ -14,20 +15,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	TCHAR szAppName[] = _T("Auto Clicker");
 	TCHAR szMainWndName[] = _T("Minecraft Auto Clicker");
 	HWND hWnd = {};
-	WNDCLASS wndClass = {};
+	WNDCLASSEX wndClass = {};
 	MSG msg = {};
+	wndClass.cbSize = sizeof(WNDCLASSEX);
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hbrBackground = (HBRUSH)::GetStockObject(WHITE_BRUSH);
 	wndClass.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-	wndClass.hIcon = ::LoadIcon(NULL, IDI_APPLICATION);
+	wndClass.hIcon = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wndClass.hIconSm = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wndClass.hInstance = hInstance;
 	wndClass.lpfnWndProc = fnWinProc;
 	wndClass.lpszClassName = szMainWndName;
 	wndClass.lpszMenuName = NULL;
 	wndClass.style = CS_HREDRAW | CS_VREDRAW;
 
-	if (!::RegisterClass(&wndClass)) {
+	if (!::RegisterClassEx(&wndClass)) {
 		const int BuffLimit = 256;
 		TCHAR szBuff[BuffLimit];
 		DWORD DWErr = GetLastError();

@@ -158,6 +158,13 @@
     <ClInclude Include="RenderManager.hpp" />
     <ClInclude Include="Graphics.hpp" />
     <ClInclude Include="Renderer.hpp" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AutoClicker.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Images\icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
