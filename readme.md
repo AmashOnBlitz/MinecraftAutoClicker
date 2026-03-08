@@ -1,90 +1,106 @@
-# 🖱️ Minecraft Auto Clicker
-
-> A DLL injector + auto-clicker built as a Win32/Direct2D learning project.  
-> Injects into a running Minecraft process and clicks so you don't have to — with *just* enough randomness to feel human.
-
----
-
-## ✨ What It Does
-
-Once injected, the DLL spawns a few background threads that handle everything:
-
-- **Auto-clicking** — left or right click at a configurable CPS, with jittered delays to avoid detection
-- **Debug overlay** — a transparent HUD showing live CPS, average CPS, and expected CPS
-- **Control panel** — a floating in-game panel (Direct2D rendered) to tune settings on the fly without re-injecting
-
-All config is persisted to a binary file in `%TEMP%` so your settings survive across sessions.
+<div align="center">
+  <img src="Images/icon.ico" width="80" />
+  <h1>Minecraft Auto Clicker</h1>
+  <p>DLL injector + auto-clicker I built while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to feel human.</p>
+</div>
 
 ---
 
-## 🔧 Features
+![App Main Window](Images/AppMainWindow.png)
 
-| Thing | Details |
+## What it does
+
+Inject the DLL, and a few background threads kick off handling everything:
+
+- **Auto-clicking** — left or right click at a set CPS, with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
+- **Control panel** — a floating in-game panel rendered with Direct2D where you can tune CPS, cooldowns, and keybinds without re-injecting
+- **Debug overlay** — a transparent HUD showing live CPS, average CPS, and expected CPS at a glance
+
+Settings persist to a binary file in `%TEMP%` so you don't have to reconfigure every session.
+
+---
+
+## Control Panel
+
+![Control Panel](Images/ControlPanel.png)
+
+The control panel is fully custom-drawn using Direct2D — sliders, rotary knobs, dropdowns, checkboxes, the works. All widgets are remappable.
+
+| Setting | Range / Options |
 |---|---|
-| CPS range | 10 – 22 (configurable per session) |
-| Click modes | Left click, right click (mutually exclusive toggle) |
-| Humanization | Jittered delays, occasional micro-bursts, drift simulation |
-| Trigger cooldown | Configurable time after which cooldown break triggers |
-| Cooldown period | Configurable break between click sessions to avoid suspicion |
-| Key binds | F1–F12 + Middle Mouse, fully remappable in-app |
-| UI | Custom Direct2D widgets — sliders, knobs, dropdowns, checkboxes |
+| CPS | 10 – 22 |
+| Click mode | Left / Right (mutually exclusive toggle) |
+| Humanization | Jitter, micro-bursts, drift simulation |
+| Trigger cooldown | Configurable |
+| Cooldown period | Configurable |
+| Keybinds | F1–F12 + Middle Mouse, remappable in-app |
 
 ---
 
-## 🏗️ Project Structure
+## Debug Overlay
 
-Everything lives flat in the solution root — that's intentional for Visual Studio filter organization. Open it in **VS** and the filters will make the structure obvious.
+![Debug Panel](Images/DebugPanel.png)
+
+Small transparent HUD that shows live CPS vs expected CPS — useful during testing to see if the humanization is doing its job.
+
+---
+
+## Project structure
+
+Everything's flat in the solution root — intentional, so VS filter organization handles the actual grouping. Open the `.sln` and it'll make sense.
 
 ```
-Addon.dll       ← the injected payload (auto-clicker logic + UI)
-main.cpp        ← the injector host app (Win32 window, DLL injection)
-Graphics.cpp/h  ← thin Direct2D wrapper
-Renderer.cpp/h  ← main window rendering + widget layout
-ControlPanel.*  ← in-game floating control panel
-Slider.*        ← custom slider widget
-Knob.*          ← rotary knob widget
-Button.*        ← button widget (normal + bottom-padded variants)
-Checkbox.*      ← checkbox widget
-CustomDropdown.*← scrollable dropdown
-KeySelector.*   ← paired F-key picker
-PidInput.*      ← digit-box PID entry widget
-Config.hpp      ← flat binary config r/w to %TEMP%
+Addon.dll         ← injected payload (auto-clicker logic + UI)
+main.cpp          ← injector host (Win32 window, DLL injection)
+Graphics.cpp/h    ← thin Direct2D wrapper
+Renderer.cpp/h    ← main window rendering + widget layout
+ControlPanel.*    ← floating in-game control panel
+Slider.*          ← custom slider widget
+Knob.*            ← rotary knob widget
+Button.*          ← button widget (normal + bottom-padded variants)
+Checkbox.*        ← checkbox widget
+CustomDropdown.*  ← scrollable dropdown
+KeySelector.*     ← paired F-key picker
+PidInput.*        ← digit-box PID entry widget
+Config.hpp        ← flat binary config r/w to %TEMP%
 ```
 
 ---
 
-## 🚀 Building
+## Building
 
-Requires **Visual Studio** with the Windows SDK and Direct2D/DWrite headers (included in the default Desktop development workload).
+Needs **Visual Studio** with the Windows SDK. Direct2D and DWrite headers come with the default Desktop C++ workload so nothing extra to install.
 
+```
 1. Clone the repo
-2. Open the `.sln` in Visual Studio
-3. Build `Release | x64`
-4. Make sure `Addon.dll` ends up next to the injector exe
+2. Open the .sln in Visual Studio
+3. Build Release | x64
+4. Make sure Addon.dll is next to the injector exe
+```
 
 ---
 
-## 🎮 Usage
+## Usage
 
+```
 1. Start Minecraft
-2. Open Task Manager → find the Minecraft PID
-3. Launch the injector, enter the PID into the digit boxes
-4. Configure CPS, cooldowns, and key binds
-5. Hit **Inject**
-6. Back in-game, press your configured toggle key to start/stop clicking
+2. Grab the Minecraft PID from Task Manager
+3. Launch the injector, type the PID into the digit boxes
+4. Set your CPS, cooldowns, and keybinds
+5. Hit Inject
+6. In-game, press your toggle key to start/stop clicking
+```
 
-The control panel and debug overlay can be toggled at any time with their assigned hotkeys (defaults: `F11` / `F12`).
-
----
-
-## ⚠️ Disclaimers
-
-This is a **personal learning project** exploring Win32 API, Direct2D, DLL injection, and thread synchronization. It is not maintained, not production-ready, and not intended for competitive play.
-
-- The author takes no responsibility for bans, account issues, or any other consequences from use
-- Anti-cheat software (EAC, VAC, etc.) may detect injection regardless of click humanization
-- Use at your own risk, on your own accounts, in environments where it's permitted
+Control panel and debug overlay toggle independently — defaults are `F11` / `F12`.
 
 ---
 
-*Built to learn — not to grief.*
+## Disclaimer
+
+Side project I made to get hands-on with Win32, Direct2D, DLL injection, and thread sync. Not maintained, not meant for competitive play.
+
+- No responsibility taken for bans or account issues
+- Anti-cheat (EAC, VAC, etc.) can detect injection regardless of click patterns
+- Use it on your own accounts where it's actually allowed
+
+*Built to learn, not to ruin anyone's game.*
