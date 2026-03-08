@@ -135,6 +135,36 @@ DWORD WINAPI DebugThread(LPVOID)
 struct DragState { bool dragging = false; POINT startCursor{}; POINT startWin{}; };
 static DragState g_drag;
 
+static void EnsurePanelVisible(HWND panel)
+{
+    RECT pc{};
+    GetClientRect(g_hwnd, &pc);
+
+    RECT wr{};
+    GetWindowRect(panel, &wr);
+
+    POINT tl{ wr.left, wr.top };
+    ScreenToClient(g_hwnd, &tl);
+
+    int pw = wr.right - wr.left;
+    int ph = wr.bottom - wr.top;
+
+    bool invalid =
+        tl.x < -pw / 2 ||
+        tl.y < -ph / 2 ||
+        tl.x > pc.right ||
+        tl.y > pc.bottom;
+
+    if (invalid)
+    {
+        int cx = (pc.right - pw) / 2;
+        int cy = (pc.bottom - ph) / 2;
+
+        SetWindowPos(panel, nullptr, cx, cy, 0, 0,
+                     SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
 static void ApplyRoundedRegion(HWND hwnd, int w, int h)
 {
     HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, 24, 24);
@@ -378,9 +408,14 @@ DWORD WINAPI CPSThread(LPVOID)
             if (g_controlHwnd) {
                 g_controlVisible = !g_controlVisible;
                 ShowWindow(g_controlHwnd, g_controlVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
+
                 if (g_controlVisible)
+                {
+                    EnsurePanelVisible(g_controlHwnd);
+
                     SetWindowPos(g_controlHwnd, HWND_TOP, 0, 0, 0, 0,
                                  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                }
             }
         }
         if (!IsAppFocused()) { g_leftEnabled = false; g_rightEnabled = false; }

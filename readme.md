@@ -4,6 +4,8 @@
   <p>DLL injector + auto-clicker I built from bare APIs while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to feel human.</p>
 </div>
 
+> **The injection and overlay system is built generically** — the same approach works for attaching to other processes (games, desktop apps, anything with a window). Minecraft is just the target here, but the DLL injection, Direct2D overlay, and thread architecture carry over to whatever you want to hook into.
+
 ---
 
 ![App Main Window](Images/AppMainWindow.png)
@@ -11,12 +13,13 @@
 ## What it does
 
 Inject the DLL, and a few background threads kick off handling everything:
-
 - **Auto-clicking** — left or right click at a set CPS, with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
 - **Control panel** — a floating in-game panel rendered with Direct2D where you can tune CPS, cooldowns, and keybinds without re-injecting
 - **Debug overlay** — a translucent HUD showing live CPS, average CPS, and expected CPS at a glance
 
 Settings persist to a binary file in `%AppData%\AcApp` (fallback : `%TEMP%`) so you don't have to reconfigure every session.
+
+![Minecraft Injected](Images/minecraftinjected.png)
 
 ---
 
@@ -71,6 +74,7 @@ Config.hpp        ← flat binary config r/w to %TEMP%
 
 Needs **Visual Studio** with the Windows SDK. Direct2D and DWrite headers come with the default Desktop C++ workload so nothing extra to install.  
 **NOTE : It is recommended to compile the app and dll yourself to match your machine rather than downloading one from releases (x64 version)**
+
 ```
 1. Clone the repo
 2. Open the .sln in Visual Studio
