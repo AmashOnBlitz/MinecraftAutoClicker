@@ -144,19 +144,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config.hpp" />
+    <ClInclude Include="Controlpanel.hpp" />
+    <ClInclude Include="CustomDropdown.hpp" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Graphics.hpp" />
+    <ClInclude Include="Keyselector.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Slider.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controlpanel.cpp" />
+    <ClCompile Include="CustomDropdown.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="Keyselector.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Slider.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

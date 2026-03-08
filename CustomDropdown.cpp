@@ -1,4 +1,4 @@
-#define NOMINMAX
+#include "pch.h"
 #include "CustomDropdown.hpp"
 #include <algorithm>
 

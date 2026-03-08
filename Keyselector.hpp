@@ -17,7 +17,6 @@ public:
     ~KeySelector();
 
     void Render();
-
     bool OnMouseMove(float mx, float my);
     bool OnMouseDown(float mx, float my);
     bool OnMouseUp(float mx, float my);
@@ -26,12 +25,14 @@ public:
 
     int  GetLClickVK() const;
     int  GetRClickVK() const;
-    void SetLClickVK(int vk);   
-    void SetRClickVK(int vk);   
+    void SetLClickVK(int vk);
+    void SetRClickVK(int vk);
+
+    float GetDropdownBottom() const;
 
 private:
     void SyncMutualExclusion(CustomDropdown* changed, CustomDropdown* other);
-    int  IndexForVK(int vk) const; 
+    int  IndexForVK(int vk) const;
 
     static constexpr float kLabelH = 16.0f;
     static constexpr float kLabelGap = 4.0f;

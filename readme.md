@@ -7,3 +7,7 @@ auto clicks with unequal intervals (to mimic human and avoid being banned)
 
 > Disclaimer : The author does not bear any responsibility of misuse of this tool
 or getting banned due to using this, as it is just for learning purposes!
+  
+**THIS PROJECT IS NOT NON-ORGANIZED, ALL FILES ARE IN SAME PLACE
+DUE TO VS (Visual Studio) WHERE I USE FILTERS, TRY OPENING
+THIS IN VS AND IT WOULD BE ORGANIZED**  
