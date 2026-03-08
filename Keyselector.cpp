@@ -28,13 +28,33 @@ KeySelector::KeySelector(HWND parentHwnd, Graphics* gfx,
         mRDrop->AddItem(kKeyNames[i], kVkCodes[i]);
     }
 
-    mLDrop->SetSelectedIndex(8);
-    mRDrop->SetSelectedIndex(9);
+    mLDrop->SetSelectedIndex(8);  
+    mRDrop->SetSelectedIndex(9);   
 }
 
 KeySelector::~KeySelector() {
     delete mLDrop;
     delete mRDrop;
+}
+
+int KeySelector::IndexForVK(int vk) const {
+    for (int i = 0; i < kKeyCount; ++i)
+        if (kVkCodes[i] == vk) return i;
+    return 0;
+}
+
+void KeySelector::SetLClickVK(int vk) {
+    if (mLDrop) {
+        mLDrop->SetSelectedIndex(IndexForVK(vk));
+        SyncMutualExclusion(mLDrop, mRDrop);
+    }
+}
+
+void KeySelector::SetRClickVK(int vk) {
+    if (mRDrop) {
+        mRDrop->SetSelectedIndex(IndexForVK(vk));
+        SyncMutualExclusion(mRDrop, mLDrop);
+    }
 }
 
 void KeySelector::Render() {

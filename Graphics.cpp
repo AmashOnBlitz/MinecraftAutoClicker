@@ -28,7 +28,7 @@ Graphics::~Graphics()
     ReleaseID2D1Object(mpRend);
 }
 
-bool Graphics::Init()
+bool Graphics::Init(bool forceDpi)
 {
     if (misInit) return true;
     HRESULT hr;
@@ -39,12 +39,25 @@ bool Graphics::Init()
 
     RECT rect;
     GetClientRect(mHwnd, &rect);
-    hr = mpfact->CreateHwndRenderTarget(
-        D2D1::RenderTargetProperties(),
-        D2D1::HwndRenderTargetProperties(mHwnd, D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top)),
-        &mpRend
-    );
-    CHECK_HR_OK;
+    if (forceDpi) {
+        hr = mpfact->CreateHwndRenderTarget(
+            D2D1::RenderTargetProperties(
+                D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                D2D1::PixelFormat(),
+                96.0f, 96.0f          
+            ),
+            D2D1::HwndRenderTargetProperties(mHwnd, D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top)),
+            &mpRend
+        );
+    }
+    else {
+        hr = mpfact->CreateHwndRenderTarget(
+            D2D1::RenderTargetProperties(),
+            D2D1::HwndRenderTargetProperties(mHwnd, D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top)),
+            &mpRend
+        );
+        CHECK_HR_OK;
+    }
     hr = mpRend->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &mpBrush);
     CHECK_HR_OK;
 

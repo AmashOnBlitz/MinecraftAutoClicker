@@ -24,11 +24,14 @@ public:
     void OnMouseLeave();
     bool OnMouseWheel(float mx, float my, int delta);
 
-    int GetLClickVK() const;
-    int GetRClickVK() const;
+    int  GetLClickVK() const;
+    int  GetRClickVK() const;
+    void SetLClickVK(int vk);   
+    void SetRClickVK(int vk);   
 
 private:
     void SyncMutualExclusion(CustomDropdown* changed, CustomDropdown* other);
+    int  IndexForVK(int vk) const; 
 
     static constexpr float kLabelH = 16.0f;
     static constexpr float kLabelGap = 4.0f;

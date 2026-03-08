@@ -10,7 +10,7 @@ class Graphics final {
 public:
     Graphics(HWND hwnd);
     ~Graphics();
-    bool Init();
+    bool Init(bool forceDpi = false);
     bool IsInit();
     void BeginDraw();
     void EndDraw();

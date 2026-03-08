@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "Config.hpp"
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
@@ -16,12 +17,31 @@ static void PopulateFKeyDropdown(CustomDropdown* dd) {
         dd->AddItem(KeySelector::kKeyNames[i], KeySelector::kVkCodes[i]);
 }
 
+static int FKeyIndexForVK(int vk) {
+    for (int i = 0; i < KeySelector::kKeyCount; ++i)
+        if (KeySelector::kVkCodes[i] == vk) return i;
+    return 0;
+}
+
 void Renderer::SetStage(HWND hWnd)
 {
     if (mHWnd != hWnd) {
         mHWnd = hWnd;
         delete mGfx;
         mGfx = new Graphics(hWnd);
+
+        AcConfig cfg{};
+        if (!LoadConfig(cfg)) {
+            cfg.cps = 18.0f;
+            cfg.cooldown = 1.0f;
+            cfg.triggerCooldown = 10.0f;
+            cfg.lClickVK = VK_F9;
+            cfg.rClickVK = VK_F10;
+            cfg.debugPanel = true;
+            cfg.controlDialog = true;
+            cfg.debugToggleVK = VK_F11;
+            cfg.controlToggleVK = VK_F12;
+        }
 
         delete btnInject;
         btnInject = new BottomPaddedButton(mHWnd, mGfx, L"Inject", 16.0f, 40.0f);
@@ -37,13 +57,13 @@ void Renderer::SetStage(HWND hWnd)
         chkDebugPanel = new FixedCheckbox(
             mHWnd, mGfx, L"Add Debug Panel",
             kLeft, btnY - (2.0f * kRowStride), kTextWidth);
-        chkDebugPanel->SetChecked(true);
+        chkDebugPanel->SetChecked(cfg.debugPanel);  
 
         delete chkControlDialog;
         chkControlDialog = new FixedCheckbox(
             mHWnd, mGfx, L"Show Control Dialog",
             kLeft, btnY - kRowStride, kTextWidth);
-        chkControlDialog->SetChecked(true);
+        chkControlDialog->SetChecked(cfg.controlDialog); 
 
         RECT rc;
         GetClientRect(mHWnd, &rc);
@@ -53,15 +73,15 @@ void Renderer::SetStage(HWND hWnd)
 
         delete knobCps;
         knobCps = new CpsKnob(mHWnd, mGfx, winW * 0.25f, knobCy, knobR);
-        knobCps->SetValue(18);
+        knobCps->SetValue(cfg.cps);
 
         delete knobCooldown;
         knobCooldown = new CooldownKnob(mHWnd, mGfx, winW * 0.50f, knobCy, knobR);
-        knobCooldown->SetValue(1.0f);
+        knobCooldown->SetValue(cfg.cooldown);
 
         delete knobTriggerCooldown;
         knobTriggerCooldown = new TriggerCooldownKnob(mHWnd, mGfx, winW * 0.75f, knobCy, knobR);
-        knobTriggerCooldown->SetValue(4.0f);
+        knobTriggerCooldown->SetValue(cfg.triggerCooldown);
 
         static constexpr float kPidBoxSize = 28.0f;
         static constexpr float kPidGap = 6.0f;
@@ -73,6 +93,8 @@ void Renderer::SetStage(HWND hWnd)
         float ksX = (winW - kComboPair) * 0.5f;
         delete keySelector;
         keySelector = new KeySelector(mHWnd, mGfx, ksX, 225.0f, kComboW);
+        keySelector->SetLClickVK(cfg.lClickVK);
+        keySelector->SetRClickVK(cfg.rClickVK);
 
         float toggleDropY = kToggleSectionY + kToggleLabelH + kToggleLabelGap;
         float lx = (winW - kComboPair) * 0.5f;
@@ -82,13 +104,13 @@ void Renderer::SetStage(HWND hWnd)
         ddDebugToggleKey = new CustomDropdown(
             mHWnd, mGfx, lx, toggleDropY, kComboW, 28.0f, 24.0f, 3);
         PopulateFKeyDropdown(ddDebugToggleKey);
-        ddDebugToggleKey->SetSelectedIndex(10);   // F11
+        ddDebugToggleKey->SetSelectedIndex(FKeyIndexForVK(cfg.debugToggleVK));
 
         delete ddControlToggleKey;
         ddControlToggleKey = new CustomDropdown(
             mHWnd, mGfx, rx, toggleDropY, kComboW, 28.0f, 24.0f, 3);
         PopulateFKeyDropdown(ddControlToggleKey);
-        ddControlToggleKey->SetSelectedIndex(11);  // F12
+        ddControlToggleKey->SetSelectedIndex(FKeyIndexForVK(cfg.controlToggleVK));
     }
 }
 
@@ -142,10 +164,9 @@ void MainWindowRenderer::Render()
                            rx, kToggleSectionY, kComboW, kToggleLabelH, labelCol, 11.0f);
     }
 
-
     if (ddDebugToggleKey)   ddDebugToggleKey->Render();
     if (ddControlToggleKey) ddControlToggleKey->Render();
-    if (keySelector)        keySelector->Render();  
+    if (keySelector)        keySelector->Render();
 
     mGfx->EndDraw();
 }
@@ -172,7 +193,6 @@ void Renderer::OnMouseMove(float mx, float my)
 
 void Renderer::OnMouseDown(float mx, float my)
 {
-
     mMouseOwner = MouseOwner::None;
 
     if (keySelector && keySelector->OnMouseDown(mx, my)) {
@@ -250,7 +270,7 @@ void Renderer::OnMouseLeave()
 
 void Renderer::OnMouseWheel(float mx, float my, int delta)
 {
-    if (keySelector && keySelector->OnMouseWheel(mx, my, delta)) return;
+    if (keySelector && keySelector->OnMouseWheel(mx, my, delta))        return;
     if (ddDebugToggleKey && ddDebugToggleKey->OnMouseWheel(mx, my, delta))   return;
     if (ddControlToggleKey && ddControlToggleKey->OnMouseWheel(mx, my, delta)) return;
 }

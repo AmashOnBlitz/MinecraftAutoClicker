@@ -25,6 +25,11 @@ static HWND g_controlHwnd = nullptr;
 static bool g_debugVisible = true;
 static bool g_controlVisible = true;
 
+bool IsAppFocused()
+{
+    HWND fg = GetForegroundWindow();
+    return fg == g_hwnd;
+}
 
 int GetHumanClickDelay(int minCPS = 15, int maxCPS = 20)
 {
@@ -118,7 +123,7 @@ DWORD WINAPI DebugThread(LPVOID)
     g_debugVisible = true;
 
     Gfx = new Graphics(hOverlay);
-    if (!Gfx->Init()) { delete Gfx; Gfx = nullptr; return 0; }
+    if (!Gfx->Init(true)) { delete Gfx; Gfx = nullptr; return 0; }
 
     MSG msg{};
     RECT rect{};
@@ -129,7 +134,7 @@ DWORD WINAPI DebugThread(LPVOID)
         }
         if (!g_hwnd) break;
         GetClientRect(g_hwnd, &rect);
-        int newW = (rect.right - rect.left) * 3 / 4;
+        int newW = (rect.right - rect.left) * 2 / 3;
         if (newW != wFact) {
             wFact = newW;
             SetWindowPos(hOverlay, HWND_TOP, 0, 0, wFact, hFact, SWP_NOMOVE | SWP_NOACTIVATE);
@@ -145,20 +150,20 @@ DWORD WINAPI DebugThread(LPVOID)
         LeaveCriticalSection(&g_statsLock);
 
         wchar_t buf[64];
-        float colW = wFact / 3.0f;
 
-        int col0x = 0, col0w = wFact / 3;
-        int col1x = col0w, col1w = wFact / 3;
-        int col2x = col1x + col1w, col2w = wFact - col2x;
+        float fW = static_cast<float>(wFact);
+        float col0x = 0.0f, col0w = floorf(fW / 3.0f);
+        float col1x = col0w, col1w = floorf(fW / 3.0f);
+        float col2x = col0w + col1w, col2w = fW - col2x;  
 
         swprintf(buf, 64, L"CUR  %.1f", curCps);
-        Gfx->DrawTextCentered(buf, col0x, 0, col0w, hFact, D2D1::ColorF(0.4f, 1.0f, 0.5f, 1.0f), 11.0f);
+        Gfx->DrawTextCentered(buf, col0x, 0, col0w, hFact, D2D1::ColorF(0.4f, 1.0f, 0.5f, 1.0f), 20.0f);
 
         swprintf(buf, 64, L"AVG  %.1f", avgCps);
-        Gfx->DrawTextCentered(buf, col1x, 0, col1w, hFact, D2D1::ColorF(0.4f, 0.7f, 1.0f, 1.0f), 11.0f);
+        Gfx->DrawTextCentered(buf, col1x, 0, col1w, hFact, D2D1::ColorF(0.4f, 0.7f, 1.0f, 1.0f), 20.0f);
 
         swprintf(buf, 64, L"EXP  %.1f", expCps);
-        Gfx->DrawTextCentered(buf, col2x, 0, col2w, hFact, D2D1::ColorF(1.0f, 0.8f, 0.3f, 1.0f), 11.0f);
+        Gfx->DrawTextCentered(buf, col2x, 0, col2w, hFact, D2D1::ColorF(1.0f, 0.8f, 0.3f, 1.0f), 20.0f);
 
         Gfx->DrawLine(col1x, 4, col1x, hFact - 4, D2D1::ColorF(0.3f, 0.3f, 0.3f, 1.0f), 1.0f);
         Gfx->DrawLine(col2x, 4, col2x, hFact - 4, D2D1::ColorF(0.3f, 0.3f, 0.3f, 1.0f), 1.0f);
@@ -216,6 +221,11 @@ DWORD WINAPI CPSThread(LPVOID)
                 ShowWindow(g_controlHwnd,
                            g_controlVisible ? SW_SHOWNOACTIVATE : SW_HIDE);
             }
+        }
+
+        if (!IsAppFocused()) {
+            g_leftEnabled = false;
+            g_rightEnabled = false;
         }
 
         if (g_leftEnabled)
