@@ -4,12 +4,14 @@
 const int KeySelector::kVkCodes[kKeyCount] = {
     VK_F1,  VK_F2,  VK_F3,  VK_F4,
     VK_F5,  VK_F6,  VK_F7,  VK_F8,
-    VK_F9,  VK_F10, VK_F11, VK_F12
+    VK_F9,  VK_F10, VK_F11, VK_F12,
+    VK_MBUTTON
 };
 const wchar_t* const KeySelector::kKeyNames[kKeyCount] = {
     L"F1",  L"F2",  L"F3",  L"F4",
     L"F5",  L"F6",  L"F7",  L"F8",
-    L"F9",  L"F10", L"F11", L"F12"
+    L"F9",  L"F10", L"F11", L"F12",
+    L"M_MouseBtn"
 };
 
 KeySelector::KeySelector(HWND parentHwnd, Graphics* gfx,

@@ -187,7 +187,7 @@ CpsKnob::CpsKnob(HWND hwnd, Graphics* gfx,
     : FixedKnob(hwnd, gfx,
                 L"CPS",
                 cx, cy, radius,
-                10.0f, 20.0f, 10.0f)
+                10.0f, 22.0f, 10.0f)
 {
 }
 

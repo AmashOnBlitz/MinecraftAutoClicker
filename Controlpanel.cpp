@@ -76,7 +76,7 @@ void ControlPanel::RebuildWidgets() {
         D2D1::ColorF(0.12f, 0.60f, 0.55f)
     };
     static const float kMins[3] = { 10.0f, 0.5f,  4.0f };
-    static const float kMaxs[3] = { 20.0f, 3.0f, 10.0f };
+    static const float kMaxs[3] = { 22.0f, 3.0f, 10.0f };
 
     float defs[3] = { g_cfg.cps, g_cfg.cooldown, g_cfg.triggerCooldown };
     Slider** targets[3] = { &mSliderCps, &mSliderCooldown, &mSliderTrigCD };

@@ -8,7 +8,7 @@
 
 class KeySelector {
 public:
-    static constexpr int kKeyCount = 12;
+    static constexpr int kKeyCount = 13;
     static const int            kVkCodes[kKeyCount];
     static const wchar_t* const kKeyNames[kKeyCount];
 

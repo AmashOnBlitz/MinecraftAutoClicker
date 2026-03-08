@@ -197,7 +197,7 @@ void Renderer::OnMouseDown(float mx, float my)
 
     if (keySelector && keySelector->OnMouseDown(mx, my)) {
         mMouseOwner = MouseOwner::KeySelector;
-        if (ddDebugToggleKey && ddDebugToggleKey->IsOpen())   ddDebugToggleKey->OnMouseLeave();
+        if (ddDebugToggleKey && ddDebugToggleKey->IsOpen())     ddDebugToggleKey->OnMouseLeave();
         if (ddControlToggleKey && ddControlToggleKey->IsOpen()) ddControlToggleKey->OnMouseLeave();
         return;
     }
@@ -210,6 +210,14 @@ void Renderer::OnMouseDown(float mx, float my)
     if (ddControlToggleKey && ddControlToggleKey->OnMouseDown(mx, my)) {
         mMouseOwner = MouseOwner::ControlToggleDrop;
         if (ddDebugToggleKey && ddDebugToggleKey->IsOpen()) ddDebugToggleKey->OnMouseLeave();
+        return;
+    }
+
+    if ((ddDebugToggleKey && ddDebugToggleKey->IsOpen()) ||
+        (ddControlToggleKey && ddControlToggleKey->IsOpen()))
+    {
+        if (ddDebugToggleKey)   ddDebugToggleKey->OnMouseLeave();
+        if (ddControlToggleKey) ddControlToggleKey->OnMouseLeave();
         return;
     }
 
