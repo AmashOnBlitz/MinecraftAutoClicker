@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="Button.hpp" />
     <ClInclude Include="Checkbox.hpp" />
+    <ClInclude Include="Config.hpp" />
     <ClInclude Include="CustomDropdown.hpp" />
     <ClInclude Include="IntBox.hpp" />
     <ClInclude Include="Keyselector.hpp" />

@@ -4,6 +4,7 @@
 #include "Renderer.hpp"
 #include "RenderManager.hpp"
 #include <filesystem>
+#include "Config.hpp"
 
 namespace fs = std::filesystem;
 
@@ -71,7 +72,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	ObjectManager::GetMainRenderer().btnInject->SetOnClick([hWnd]() {
 		fs::path dllPath = fs::absolute("Addon.dll");
-		if (!fs::exists(dllPath)){
+		if (!fs::exists(dllPath)) {
 			MessageBox(
 				hWnd,
 				_TEXT("Addon Dll does not exist (addon.dll) \nTry reinstalling the app"),
@@ -82,17 +83,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		}
 		int PID = ObjectManager::GetMainRenderer().pidInput->GetPid();
 		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
-		if(hProcess == nullptr || hProcess == INVALID_HANDLE_VALUE) {
+		if (hProcess == nullptr || hProcess == INVALID_HANDLE_VALUE) {
 			MessageBox(
 				hWnd,
-				_TEXT("Failed to open: process probably doesn't exist or access denied"), 
+				_TEXT("Failed to open: process probably doesn't exist or access denied"),
 				_TEXT("Failure"),
 				MB_ICONERROR | MB_APPLMODAL | MB_OK
 			);
 			return;
 		}
 		void* memLoc = ::VirtualAllocEx(hProcess, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		if (memLoc == nullptr){
+		if (memLoc == nullptr) {
 			MessageBox(
 				hWnd,
 				_TEXT("Failed to allocate memory in remote process"),
@@ -131,6 +132,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		if (hProcess) {
 			::CloseHandle(hProcess);
 		}
+
+		auto& r = ObjectManager::GetMainRenderer();
+		AcConfig cfg{};
+		cfg.cps = r.knobCps ? r.knobCps->GetValue() : 18.0f;
+		cfg.cooldown = r.knobCooldown ? r.knobCooldown->GetValue() : 1.0f;
+		cfg.triggerCooldown = r.knobTriggerCooldown ? r.knobTriggerCooldown->GetValue() : 4.0f;
+		cfg.lClickVK = r.keySelector ? r.keySelector->GetLClickVK() : VK_F9;
+		cfg.rClickVK = r.keySelector ? r.keySelector->GetRClickVK() : VK_F10;
+		cfg.debugPanel = r.chkDebugPanel ? r.chkDebugPanel->IsChecked() : true;
+		cfg.controlDialog = r.chkControlDialog ? r.chkControlDialog->IsChecked() : true;
+		SaveConfig(cfg);
 
 		MessageBox(hWnd, L"Injected!", L"Success", MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
 														   });

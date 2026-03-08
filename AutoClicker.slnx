@@ -3,6 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="../Addon/Addon.vcxproj" Id="af30e7ca-a909-4bf6-a1b6-de67d98cbe68" />
+  <Project Path="Addon.vcxproj" Id="af30e7ca-a909-4bf6-a1b6-de67d98cbe68" />
   <Project Path="AutoClicker.vcxproj" Id="6ba2ecfa-abc1-4743-826f-d4175877ad55" />
 </Solution>

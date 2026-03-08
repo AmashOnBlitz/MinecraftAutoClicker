@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Graphics.hpp"
 #include "dwrite.h"
 #include <string>
@@ -179,6 +180,14 @@ void Graphics::FillRoundedRect(float x, float y, float w, float h,
     mpRend->FillRoundedRectangle(rect, mpBrush);
 }
 
+void Graphics::FillRect(float x, float y, float w, float h, D2D1::ColorF color)
+{
+    GUARD_NO_INIT;
+    mpBrush->SetColor(color);
+    D2D1_RECT_F rect = D2D1::RectF(x, y, x + w, y + h);
+    mpRend->FillRectangle(rect, mpBrush);
+}
+
 void Graphics::DrawRoundedRect(float x, float y, float w, float h,
                                float radius, D2D1::ColorF color, float strokeW)
 {
@@ -191,6 +200,14 @@ void Graphics::DrawRoundedRect(float x, float y, float w, float h,
     mpRend->DrawRoundedRectangle(rect, mpBrush, strokeW);
 }
 
+void Graphics::DrawRect(float x, float y, float w, float h, D2D1::ColorF color, float strokeW)
+{
+    GUARD_NO_INIT;
+    mpBrush->SetColor(color);
+    D2D1_RECT_F rect = D2D1::RectF(x, y, x + w, y + h);
+    mpRend->DrawRectangle(rect, mpBrush, strokeW);
+}
+
 void Graphics::DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF color, float strokeW) {
     GUARD_NO_INIT;
     mpBrush->SetColor(color);
@@ -200,6 +217,11 @@ void Graphics::DrawLine(float x1, float y1, float x2, float y2, D2D1::ColorF col
         mpBrush,
         strokeW
     );
+}
+
+HWND Graphics::getHwnd()
+{
+    return mHwnd;
 }
 
 #pragma endregion
