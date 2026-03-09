@@ -77,6 +77,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -93,6 +94,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -107,6 +109,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,6 +126,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -131,40 +135,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Button.cpp" />
-    <ClCompile Include="Checkbox.cpp" />
-    <ClCompile Include="CustomDropdown.cpp" />
-    <ClCompile Include="Graphics.cpp" />
-    <ClCompile Include="IntBox.cpp" />
-    <ClCompile Include="Keyselector.cpp" />
-    <ClCompile Include="knob.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PidInput.cpp" />
-    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="src/Button.cpp" />
+    <ClCompile Include="src/Checkbox.cpp" />
+    <ClCompile Include="src/CustomDropdown.cpp" />
+    <ClCompile Include="src/Graphics.cpp" />
+    <ClCompile Include="src/IntBox.cpp" />
+    <ClCompile Include="src/Keyselector.cpp" />
+    <ClCompile Include="src/knob.cpp" />
+    <ClCompile Include="src/main.cpp" />
+    <ClCompile Include="src/PidInput.cpp" />
+    <ClCompile Include="src/Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Button.hpp" />
-    <ClInclude Include="Checkbox.hpp" />
-    <ClInclude Include="Config.hpp" />
-    <ClInclude Include="CustomDropdown.hpp" />
-    <ClInclude Include="IntBox.hpp" />
-    <ClInclude Include="Keyselector.hpp" />
-    <ClInclude Include="knob.hpp" />
-    <ClInclude Include="PidInput.hpp" />
-    <ClInclude Include="RenderManager.hpp" />
-    <ClInclude Include="Graphics.hpp" />
-    <ClInclude Include="Renderer.hpp" />
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="include/Button.hpp" />
+    <ClInclude Include="include/Checkbox.hpp" />
+    <ClInclude Include="include/Config.hpp" />
+    <ClInclude Include="include/CustomDropdown.hpp" />
+    <ClInclude Include="include/IntBox.hpp" />
+    <ClInclude Include="include/Keyselector.hpp" />
+    <ClInclude Include="include/knob.hpp" />
+    <ClInclude Include="include/PidInput.hpp" />
+    <ClInclude Include="include/RenderManager.hpp" />
+    <ClInclude Include="include/Graphics.hpp" />
+    <ClInclude Include="include/Renderer.hpp" />
+    <ClInclude Include="include/resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="AutoClicker.rc" />
+    <ResourceCompile Include="resources/AutoClicker.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Images\icon.ico" />
+    <Image Include="resources/Images\icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

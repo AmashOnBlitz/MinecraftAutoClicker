@@ -1,108 +1,105 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Git">
-      <UniqueIdentifier>{dccb2fc9-02b1-4ff4-8e0d-84297b4de66e}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="src/Button.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Checkbox.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/CustomDropdown.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Graphics.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/IntBox.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Keyselector.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/knob.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/PidInput.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src/Renderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Checkbox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="knob.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="IntBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PidInput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyselector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CustomDropdown.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="include/Button.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Checkbox.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Config.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/CustomDropdown.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Graphics.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/IntBox.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Keyselector.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/knob.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/PidInput.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/Renderer.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/RenderManager.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include/resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore">
-      <Filter>Git</Filter>
+      <Filter>git</Filter>
     </None>
     <None Include="readme.md">
-      <Filter>Git</Filter>
+      <Filter>git</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Graphics.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Button.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Checkbox.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="knob.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IntBox.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PidInput.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyselector.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CustomDropdown.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Config.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <Filter Include="include">
+      <UniqueIdentifier>{70b3a43a-3850-4f25-a106-b1e603007330}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{856b418b-4b62-400a-b9bf-e6f434575297}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{5eb0a225-8d51-4c3b-85bc-e270e7c0d617}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="git">
+      <UniqueIdentifier>{14c45e5c-c826-4043-941b-214c7173ed34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="AutoClicker.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Images\icon.ico">
-      <Filter>Resource Files</Filter>
+    <Image Include="resources/Images\icon.ico">
+      <Filter>resources</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources/AutoClicker.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
