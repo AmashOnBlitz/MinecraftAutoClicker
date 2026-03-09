@@ -4,7 +4,7 @@
   <p>DLL injector + auto-clicker I built from bare APIs while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to feel human.</p>
 </div>
 
-> **The injection and overlay system is built generically** — the same approach works for attaching to other processes (games, desktop apps, anything with a window). Minecraft is just the target here, but the DLL injection, Direct2D overlay, and thread architecture carry over to whatever you want to hook into.
+> **The injection and overlay system is built generically**, the same approach works for attaching to other processes (games, desktop apps, anything with a window). Minecraft is just the target here, but the DLL injection, Direct2D overlay, and thread architecture carry over to whatever you want to hook into.
 
 ---
 
