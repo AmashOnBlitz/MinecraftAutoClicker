@@ -1,10 +1,10 @@
 <div align="center">
   <img src="Images/icon.ico" width="80" />
   <h1>Minecraft Auto Clicker</h1>
-  <p>DLL injector + auto-clicker I built from bare APIs while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to feel human.</p>
+  <p>DLL injector + auto-clicker that I built from bare APIs while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to feel human.</p>
 </div>
 
-> **The injection and overlay system is built generically**, the same approach works for attaching to other processes (games, desktop apps, anything with a window). Minecraft is just the target here, but the DLL injection, Direct2D overlay, and thread architecture carry over to whatever you want to hook into.
+> **The injection and overlay system is built generically**, the same approach works for attaching to **other processes (games, desktop apps, anything with a window)**. Minecraft is just the target here, but the DLL injection, Direct2D overlay, and thread architecture carry over to whatever you want to hook into.
 
 ---
 
@@ -13,7 +13,7 @@
 ## What it does
 
 Inject the DLL, and a few background threads kick off handling everything:
-- **Auto-clicking** — left or right click at a set CPS, with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
+- **Auto-clicking** — left or right click at a set CPS (Clicks Per Second), with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
 - **Control panel** — a floating in-game panel rendered with Direct2D where you can tune CPS, cooldowns, and keybinds without re-injecting
 - **Debug overlay** — a translucent HUD showing live CPS, average CPS, and expected CPS at a glance
 
@@ -103,8 +103,8 @@ Control panel and debug overlay toggle independently — defaults are `F11` / `F
 Side project I made to get used to Win32, Direct2D, espacially DLL injection, and thread. (may recieve tweaks and more hacks in future), not meant to be used in competitive play.  
   
 - No responsibility taken for bans or account issues
-- Anti-cheat (EAC, VAC, etc.) can detect injection regardless of click patterns
+- Anti-cheat (EAC, VAC, etc.) may detect injection regardless of click patterns
 - Use it on your own accounts where it's actually allowed
-- Or maybe troll your friends in **your own server**
+- Or to maybe troll your friends in **your own server**
 
-*Built to learn, not to ruin anyone's game.*
+*Do not use this to ruin anyone's game*
