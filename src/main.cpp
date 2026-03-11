@@ -5,7 +5,7 @@
 #include "RenderManager.hpp"
 #include <filesystem>
 #include "Config.hpp"
-#include "resource.h"
+#include "../resources/resource.h"
 
 namespace fs = std::filesystem;
 
