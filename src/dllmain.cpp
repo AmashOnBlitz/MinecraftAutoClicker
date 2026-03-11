@@ -377,7 +377,8 @@ DWORD WINAPI CPSThread(LPVOID)
                 g_rightTriggerActive = true;
             }
             else {
-                g_rightEnabled = false;
+                Sleep(1);
+                continue;
             }
         }
 
