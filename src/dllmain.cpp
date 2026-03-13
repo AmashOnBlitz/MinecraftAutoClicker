@@ -67,6 +67,36 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM) {
     return TRUE;
 }
 
+static void EnsurePanelVisible(HWND panel)
+{
+    RECT pc{};
+    GetClientRect(g_hwnd, &pc);
+
+    RECT wr{};
+    GetWindowRect(panel, &wr);
+
+    POINT tl{ wr.left, wr.top };
+    ScreenToClient(g_hwnd, &tl);
+
+    int pw = wr.right - wr.left;
+    int ph = wr.bottom - wr.top;
+
+    bool invalid =
+        tl.x < 0 ||
+        tl.y < 0 ||
+        tl.x + pw > pc.right ||
+        tl.y + ph > pc.bottom;
+
+    if (invalid)
+    {
+        int cx = (pc.right - pw) / 2;
+        int cy = (pc.bottom - ph) / 2;
+
+        SetWindowPos(panel, nullptr, cx, cy, 0, 0,
+                     SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
 DWORD WINAPI DebugThread(LPVOID)
 {
     int wFact = 500;
@@ -132,39 +162,6 @@ DWORD WINAPI DebugThread(LPVOID)
     return 0;
 }
 
-struct DragState { bool dragging = false; POINT startCursor{}; POINT startWin{}; };
-static DragState g_drag;
-
-static void EnsurePanelVisible(HWND panel)
-{
-    RECT pc{};
-    GetClientRect(g_hwnd, &pc);
-
-    RECT wr{};
-    GetWindowRect(panel, &wr);
-
-    POINT tl{ wr.left, wr.top };
-    ScreenToClient(g_hwnd, &tl);
-
-    int pw = wr.right - wr.left;
-    int ph = wr.bottom - wr.top;
-
-    bool invalid =
-        tl.x < -pw / 2 ||
-        tl.y < -ph / 2 ||
-        tl.x > pc.right ||
-        tl.y > pc.bottom;
-
-    if (invalid)
-    {
-        int cx = (pc.right - pw) / 2;
-        int cy = (pc.bottom - ph) / 2;
-
-        SetWindowPos(panel, nullptr, cx, cy, 0, 0,
-                     SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-    }
-}
-
 static void ApplyRoundedRegion(HWND hwnd, int w, int h)
 {
     HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, 24, 24);
@@ -181,8 +178,8 @@ static void ClampToParent(HWND panel)
     ScreenToClient(g_hwnd, &tl);
     int pw = wr.right - wr.left, ph = wr.bottom - wr.top;
     int px = tl.x, py = tl.y;
-    if (px < 0)           px = 0;
-    if (py < 0)           py = 0;
+    if (px < 0)              px = 0;
+    if (py < 0)              py = 0;
     if (px + pw > pc.right)  px = pc.right - pw;
     if (py + ph > pc.bottom) py = pc.bottom - ph;
     SetWindowPos(panel, nullptr, px, py, 0, 0,
@@ -219,57 +216,27 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     case WM_LBUTTONDOWN: {
         float mx = (float)(short)LOWORD(lParam);
         float my = (float)(short)HIWORD(lParam);
-        if (cp && cp->IsDragArea(mx, my)) {
-            g_drag.dragging = true;
-            GetCursorPos(&g_drag.startCursor);
-            RECT wr{};
-            GetWindowRect(hwnd, &wr);
-            POINT o = { wr.left, wr.top };
-            ScreenToClient(g_hwnd, &o);
-            g_drag.startWin = o;
-            SetCapture(hwnd);
-        }
-        else {
-            SetCapture(hwnd);
-            if (cp) cp->OnMouseDown(mx, my);
-        }
+        SetCapture(hwnd);
+        if (cp) cp->OnMouseDown(mx, my);
         return 0;
     }
     case WM_MOUSEMOVE: {
         float mx = (float)(short)LOWORD(lParam);
         float my = (float)(short)HIWORD(lParam);
-        if (g_drag.dragging) {
-            POINT cur{};
-            GetCursorPos(&cur);
-            int nx = g_drag.startWin.x + (cur.x - g_drag.startCursor.x);
-            int ny = g_drag.startWin.y + (cur.y - g_drag.startCursor.y);
-            SetWindowPos(hwnd, nullptr, nx, ny, 0, 0,
-                         SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-            ClampToParent(hwnd);
-        }
-        else {
-            if (cp) cp->OnMouseMove(mx, my);
-            TRACKMOUSEEVENT tme = { sizeof(tme), TME_LEAVE, hwnd, 0 };
-            TrackMouseEvent(&tme);
-        }
+        if (cp) cp->OnMouseMove(mx, my);
+        TRACKMOUSEEVENT tme = { sizeof(tme), TME_LEAVE, hwnd, 0 };
+        TrackMouseEvent(&tme);
         return 0;
     }
     case WM_LBUTTONUP: {
         float mx = (float)(short)LOWORD(lParam);
         float my = (float)(short)HIWORD(lParam);
-        if (g_drag.dragging) {
-            g_drag.dragging = false;
-            ReleaseCapture();
-            ClampToParent(hwnd);
-        }
-        else {
-            ReleaseCapture();
-            if (cp) cp->OnMouseUp(mx, my);
-        }
+        ReleaseCapture();
+        if (cp) cp->OnMouseUp(mx, my);
         return 0;
     }
     case WM_MOUSELEAVE:
-        if (!g_drag.dragging && cp) cp->OnMouseLeave();
+        if (cp) cp->OnMouseLeave();
         return 0;
     case WM_MOUSEWHEEL: {
         POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
@@ -277,8 +244,30 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         if (cp) cp->OnMouseWheel((float)pt.x, (float)pt.y, GET_WHEEL_DELTA_WPARAM(wParam));
         return 0;
     }
-    case WM_NCHITTEST:
+    case WM_SHOWWINDOW:
+        if (wParam && g_hwnd) EnsurePanelVisible(hwnd);
+        return 0;
+    case WM_MOVING: {
+        RECT* proposed = reinterpret_cast<RECT*>(lParam);
+        RECT pc{};
+        GetClientRect(g_hwnd, &pc);
+        POINT origin{};
+        ClientToScreen(g_hwnd, &origin);
+        int pw = proposed->right - proposed->left;
+        int ph = proposed->bottom - proposed->top;
+        if (proposed->left < origin.x)                proposed->left = origin.x, proposed->right = origin.x + pw;
+        if (proposed->top < origin.y)                proposed->top = origin.y, proposed->bottom = origin.y + ph;
+        if (proposed->right > origin.x + pc.right)    proposed->right = origin.x + pc.right, proposed->left = proposed->right - pw;
+        if (proposed->bottom > origin.y + pc.bottom)   proposed->bottom = origin.y + pc.bottom, proposed->top = proposed->bottom - ph;
+        return TRUE;
+    }
+    case WM_NCHITTEST: {
+        POINT pt = { (LONG)(short)LOWORD(lParam), (LONG)(short)HIWORD(lParam) };
+        ScreenToClient(hwnd, &pt);
+        if (cp && cp->IsDragArea((float)pt.x, (float)pt.y))
+            return HTCAPTION;
         return HTCLIENT;
+    }
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
@@ -413,7 +402,6 @@ DWORD WINAPI CPSThread(LPVOID)
                 if (g_controlVisible)
                 {
                     EnsurePanelVisible(g_controlHwnd);
-
                     SetWindowPos(g_controlHwnd, HWND_TOP, 0, 0, 0, 0,
                                  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                 }
