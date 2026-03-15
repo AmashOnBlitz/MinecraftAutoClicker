@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(ProjectDir)include\jni;$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -138,12 +141,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>jvm.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -155,6 +159,15 @@
     <ClInclude Include="include/Keyselector.hpp" />
     <ClInclude Include="include/pch.h" />
     <ClInclude Include="include/Slider.hpp" />
+    <ClInclude Include="include\Button.hpp" />
+    <ClInclude Include="include\Checkbox.hpp" />
+    <ClInclude Include="include\IntBox.hpp" />
+    <ClInclude Include="include\Keybinder.hpp" />
+    <ClInclude Include="include\knob.hpp" />
+    <ClInclude Include="include\mclib.h" />
+    <ClInclude Include="include\PidInput.hpp" />
+    <ClInclude Include="include\Renderer.hpp" />
+    <ClInclude Include="include\RenderManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src/Controlpanel.cpp" />
@@ -169,6 +182,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src/Slider.cpp" />
+    <ClCompile Include="src\Button.cpp" />
+    <ClCompile Include="src\Checkbox.cpp" />
+    <ClCompile Include="src\IntBox.cpp" />
+    <ClCompile Include="src\Keybinder.cpp" />
+    <ClCompile Include="src\knob.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\mclib.cpp" />
+    <ClCompile Include="src\PidInput.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

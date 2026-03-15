@@ -5,6 +5,8 @@
 #include <string>
 #include <functional>
 #include "Graphics.hpp"
+#include <Windows.h>
+
 
 class Button {
 public:

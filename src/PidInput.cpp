@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "PidInput.hpp"
 
 PidInput::PidInput(HWND hwnd, Graphics* gfx, float x, float y)

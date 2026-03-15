@@ -1,3 +1,4 @@
+#include "pch.h"
 #define NOMINMAX
 #include "Checkbox.hpp"
 #include <algorithm>

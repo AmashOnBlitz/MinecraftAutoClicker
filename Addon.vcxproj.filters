@@ -22,6 +22,15 @@
     <ClCompile Include="src/Slider.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\PidInput.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\knob.cpp" />
+    <ClCompile Include="src\Checkbox.cpp" />
+    <ClCompile Include="src\Button.cpp" />
+    <ClCompile Include="src\IntBox.cpp" />
+    <ClCompile Include="src\Keybinder.cpp" />
+    <ClCompile Include="src\mclib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include/Config.hpp">
@@ -48,6 +57,15 @@
     <ClInclude Include="include/Slider.hpp">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="include\RenderManager.hpp" />
+    <ClInclude Include="include\PidInput.hpp" />
+    <ClInclude Include="include\Renderer.hpp" />
+    <ClInclude Include="include\knob.hpp" />
+    <ClInclude Include="include\Keybinder.hpp" />
+    <ClInclude Include="include\IntBox.hpp" />
+    <ClInclude Include="include\Checkbox.hpp" />
+    <ClInclude Include="include\Button.hpp" />
+    <ClInclude Include="include\mclib.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Include">

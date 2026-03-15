@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Windows.h"
 #include "tchar.h"
 #include "strsafe.h"
@@ -74,71 +75,55 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 	::UpdateWindow(hWnd);
 
 	ObjectManager::GetMainRenderer().btnInject->SetOnClick([hWnd]() {
+
+#define INJ_DEBUG 1
+#ifdef INJ_DEBUG
+		wchar_t _dbgTmp[MAX_PATH]{};
+		GetTempPathW(MAX_PATH, _dbgTmp);
+		wchar_t _dbgPath[MAX_PATH]{};
+		swprintf_s(_dbgPath, L"%sac_inject.log", _dbgTmp);
+		FILE* _dbgF = nullptr;
+		_wfopen_s(&_dbgF, _dbgPath, L"w");
+		auto InjLog = [&](const wchar_t* fmt, auto... args) {
+			if (!_dbgF) return;
+			wchar_t _b[512]{};
+			swprintf_s(_b, fmt, args...);
+			fwprintf(_dbgF, L"[%llu] %s\n", GetTickCount64(), _b);
+			fflush(_dbgF);
+		};
+#else
+		auto InjLog = [](const wchar_t*, auto...) {};
+#endif
+
+		auto RemoteLoadLibrary = [&](HANDLE hProc, const std::string& path, FARPROC pLLA) -> DWORD {
+			void* mem = ::VirtualAllocEx(hProc, 0, path.size() + 1,
+										 MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+			InjLog(L"RemoteLoadLibrary: alloc %p for %S", mem, path.c_str());
+			if (!mem) return 0;
+			::WriteProcessMemory(hProc, mem, path.c_str(), path.size() + 1, 0);
+			HANDLE hT = ::CreateRemoteThread(hProc, 0, 0,
+											 (LPTHREAD_START_ROUTINE)pLLA, mem, 0, 0);
+			InjLog(L"RemoteLoadLibrary: thread %p err=%lu", hT, GetLastError());
+			DWORD exitCode = 0;
+			if (hT && hT != INVALID_HANDLE_VALUE) {
+				WaitForSingleObject(hT, 5000);
+				GetExitCodeThread(hT, &exitCode);
+				::CloseHandle(hT);
+			}
+			::VirtualFreeEx(hProc, mem, 0, MEM_RELEASE);
+			InjLog(L"RemoteLoadLibrary: exitCode=0x%lX for %S", exitCode, path.c_str());
+			return exitCode;
+		};
+
+		InjLog(L"Inject: button clicked");
+
 		fs::path dllPath = fs::absolute("Addon.dll");
+		InjLog(L"Inject: dllPath exists=%d  path=%s", (int)fs::exists(dllPath), dllPath.wstring().c_str());
 		if (!fs::exists(dllPath)) {
-			MessageBox(
-				hWnd,
-				_TEXT("Addon Dll does not exist (addon.dll) \nTry reinstalling the app"),
-				_TEXT("ERROR : DLL Not Found"),
-				MB_ICONERROR | MB_APPLMODAL | MB_OK
-			);
+			MessageBox(hWnd,
+					   _TEXT("Addon.dll not found. Try reinstalling."),
+					   _TEXT("DLL Not Found"), MB_ICONERROR | MB_OK);
 			return;
-		}
-
-		int PID = ObjectManager::GetMainRenderer().pidInput->GetPid();
-		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
-		if (hProcess == nullptr || hProcess == INVALID_HANDLE_VALUE) {
-			MessageBox(
-				hWnd,
-				_TEXT("Failed to open: process probably doesn't exist or access denied"),
-				_TEXT("Failure"),
-				MB_ICONERROR | MB_APPLMODAL | MB_OK
-			);
-			return;
-		}
-
-		void* memLoc = ::VirtualAllocEx(hProcess, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		if (memLoc == nullptr) {
-			MessageBox(
-				hWnd,
-				_TEXT("Failed to allocate memory in remote process"),
-				_TEXT("Access Denied"),
-				MB_ICONERROR | MB_APPLMODAL | MB_OK
-			);
-			return;
-		}
-
-		std::string dllPathStr = dllPath.string();
-		BOOL b = ::WriteProcessMemory(hProcess, memLoc, dllPathStr.c_str(), dllPathStr.size() + 1, 0);
-		if (b == FALSE) {
-			MessageBox(
-				hWnd,
-				_TEXT("Failed to write in the remotely allocated memory"),
-				_TEXT("Access Denied"),
-				MB_ICONERROR | MB_APPLMODAL | MB_OK
-			);
-			return;
-		}
-
-		HANDLE hThread = ::CreateRemoteThread(
-			hProcess, 0, 0,
-			(LPTHREAD_START_ROUTINE)LoadLibraryA,
-			memLoc, 0, 0);
-
-		if (hThread == INVALID_HANDLE_VALUE || hThread == nullptr) {
-			MessageBox(
-				hWnd,
-				_TEXT("Failed to create thread in remote process"),
-				_TEXT("Access Denied"),
-				MB_ICONERROR | MB_APPLMODAL | MB_OK
-			);
-			return;
-		}
-		else {
-			::CloseHandle(hThread);
-		}
-		if (hProcess) {
-			::CloseHandle(hProcess);
 		}
 
 		auto& r = ObjectManager::GetMainRenderer();
@@ -153,9 +138,64 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 		cfg.debugToggleVK = r.ddDebugToggleKey ? r.ddDebugToggleKey->GetSelectedValue() : VK_F11;
 		cfg.controlToggleVK = r.ddControlToggleKey ? r.ddControlToggleKey->GetSelectedValue() : VK_F12;
 		SaveConfig(cfg);
+		InjLog(L"Inject: SaveConfig done cps=%.1f", cfg.cps);
 
-		MessageBox(hWnd, L"Injected!", L"Success", MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
-														   });
+		int PID = ObjectManager::GetMainRenderer().pidInput->GetPid();
+		InjLog(L"Inject: target PID=%d", PID);
+
+		HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
+		InjLog(L"Inject: OpenProcess -> %p err=%lu", hProcess, GetLastError());
+		if (!hProcess || hProcess == INVALID_HANDLE_VALUE) {
+			MessageBox(hWnd,
+					   _TEXT("Failed to open process. It may not exist or access was denied."),
+					   _TEXT("Failure"), MB_ICONERROR | MB_OK);
+			return;
+		}
+
+		HMODULE hK32 = GetModuleHandleW(L"kernel32.dll");
+		FARPROC pLLA = GetProcAddress(hK32, "LoadLibraryA");
+		InjLog(L"Inject: kernel32=%p LoadLibraryA=%p", hK32, pLLA);
+
+		fs::path jvmSrc = fs::absolute("jvm.dll");
+		InjLog(L"Inject: jvm.dll exists=%d  path=%s", (int)fs::exists(jvmSrc), jvmSrc.wstring().c_str());
+		if (fs::exists(jvmSrc)) {
+			std::string jvmPathStr = jvmSrc.string();
+			DWORD jvmCode = RemoteLoadLibrary(hProcess, jvmPathStr, pLLA);
+			InjLog(L"Inject: jvm remote load exitCode=0x%lX", jvmCode);
+			if (jvmCode == 0) {
+				InjLog(L"Inject: WARNING jvm.dll failed to load in remote process, continuing anyway");
+				int choice = MessageBox(hWnd,
+										_TEXT("jvm.dll failed to load into the target process.\nContinue injecting Addon.dll anyway?"),
+										_TEXT("JVM Warning"), MB_ICONWARNING | MB_YESNO);
+				if (choice == IDNO) {
+					::CloseHandle(hProcess);
+					return;
+				}
+			}
+		}
+		else {
+			InjLog(L"Inject: jvm.dll not found next to injector, skipping");
+		}
+
+		std::string dllPathStr = dllPath.string();
+		DWORD addonCode = RemoteLoadLibrary(hProcess, dllPathStr, pLLA);
+		InjLog(L"Inject: Addon.dll remote load exitCode=0x%lX", addonCode);
+
+		::CloseHandle(hProcess);
+
+		wchar_t resultMsg[256]{};
+		swprintf_s(resultMsg,
+				   L"jvm.dll loaded first, then Addon.dll.\nAddon exitCode: 0x%lX\n%s",
+				   addonCode,
+				   addonCode ? L"OK" : L"FAILED — check ac_inject.log in %%TEMP%%");
+		MessageBox(hWnd, resultMsg,
+				   addonCode ? L"Injected!" : L"Load Failed",
+				   MB_OK | MB_APPLMODAL | (addonCode ? MB_ICONINFORMATION : MB_ICONERROR));
+
+#ifdef INJ_DEBUG
+		if (_dbgF) fclose(_dbgF);
+#endif
+	});
 
 	while (::GetMessage(&msg, NULL, 0, 0)) {
 		::TranslateMessage(&msg);

@@ -1,7 +1,9 @@
+#include "pch.h"
 #define NOMINMAX
 #include "Button.hpp"
 #include <algorithm>
-
+#include "Graphics.hpp"
+#include "d2d1.h"
 
 static D2D1::ColorF Lighten(D2D1::ColorF c, float amt) {
     return D2D1::ColorF(
