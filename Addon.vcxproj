@@ -166,10 +166,12 @@
     <ClInclude Include="include\knob.hpp" />
     <ClInclude Include="include\mclib.h" />
     <ClInclude Include="include\PidInput.hpp" />
+    <ClInclude Include="include\Processpicker.hpp" />
     <ClInclude Include="include\Renderer.hpp" />
     <ClInclude Include="include\RenderManager.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Processpicker.cpp" />
     <ClCompile Include="src/Controlpanel.cpp" />
     <ClCompile Include="src/CustomDropdown.cpp" />
     <ClCompile Include="src/dllmain.cpp" />

@@ -146,6 +146,7 @@
     <ClCompile Include="src/main.cpp" />
     <ClCompile Include="src/PidInput.cpp" />
     <ClCompile Include="src/Renderer.cpp" />
+    <ClCompile Include="src\Processpicker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -164,6 +165,7 @@
     <ClInclude Include="include/Graphics.hpp" />
     <ClInclude Include="include/Renderer.hpp" />
     <ClInclude Include="include/resource.h" />
+    <ClInclude Include="include\Processpicker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources/AutoClicker.rc" />

@@ -11,14 +11,17 @@ public:
 
     void Render(bool focused);
     bool HitTest(float mx, float my) const;
-    int  GetDigit() const;
     void SetDigit(int d);
+    int  GetDigit() const { return mDigit; }
+    void SetBlank(bool b) { mBlank = b; }
+    bool IsBlank()  const { return mBlank; }
 
 private:
     HWND      mHwnd;
     Graphics* mGfx;
     float     mX, mY, mSize;
     int       mDigit = 0;
+    bool      mBlank = false;
 };
 
 #endif

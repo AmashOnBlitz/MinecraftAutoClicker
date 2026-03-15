@@ -5,9 +5,11 @@
 #include <random>
 #include <algorithm>
 #include <cstdio>
+#include <deque>
+#include <functional>
 #include "Graphics.hpp"
 
-#define AC_DEBUG 1
+//#define AC_DEBUG 1
 
 #ifdef AC_DEBUG
 static FILE* g_dbgFile = nullptr;
@@ -23,7 +25,7 @@ static void DbgInit()
     _wfopen_s(&g_dbgFile, path, L"w");
 }
 
-static void DbgLog(const wchar_t* fmt, ...)
+void DbgLog(const wchar_t* fmt, ...)
 {
     if (!g_dbgFile) return;
     EnterCriticalSection(&g_dbgLock);
@@ -33,14 +35,28 @@ static void DbgLog(const wchar_t* fmt, ...)
     vswprintf_s(buf, fmt, args);
     va_end(args);
     ULONGLONG t = GetTickCount64();
-    fwprintf(g_dbgFile, L"[%llu] %s\n", t, buf);
+    fwprintf(g_dbgFile, L"[%llu] [tid=%lu] %s\n", t, GetCurrentThreadId(), buf);
     fflush(g_dbgFile);
     LeaveCriticalSection(&g_dbgLock);
 }
 #else
-#define DbgInit() ((void)0)
-#define DbgLog(...) ((void)0)
+#define DbgInit()     ((void)0)
+#define DbgLog(...)   ((void)0)
 #endif
+
+static CRITICAL_SECTION                  g_mcQLock;
+static std::deque<std::function<void()>> g_mcQ;
+
+float        g_cachedFlySpeed = 0.15f;
+int          g_cachedFly = 0;
+volatile int g_wantFly = 0;
+
+void MC_Post(std::function<void()> fn)
+{
+    EnterCriticalSection(&g_mcQLock);
+    g_mcQ.push_back(std::move(fn));
+    LeaveCriticalSection(&g_mcQLock);
+}
 
 struct ClickStats {
     int   clickCount = 0;
@@ -65,10 +81,10 @@ bool              g_leftEnabled = false;
 bool              g_rightEnabled = false;
 bool              g_mcReady = false;
 Graphics* Gfx = nullptr;
-static HWND g_overlayHwnd = nullptr;
-static HWND g_controlHwnd = nullptr;
-static bool g_debugVisible = true;
-static bool g_controlVisible = false;
+static HWND       g_overlayHwnd = nullptr;
+static HWND       g_controlHwnd = nullptr;
+static bool       g_debugVisible = true;
+static bool       g_controlVisible = false;
 
 bool IsAppFocused() { return GetForegroundWindow() == g_hwnd; }
 
@@ -115,8 +131,8 @@ int GetHumanClickDelay(int minCPS = 15, int maxCPS = 20)
     if (cc % (10 + gen() % 30) == 0) delay += 5 + gen() % 12;
     std::uniform_int_distribution<> chance(1, 100);
     int roll = chance(gen);
-    if (roll <= 3) delay += 20 + gen() % 50;
-    else if (roll <= 8) delay -= 3 + gen() % 6;
+    if (roll <= 3)       delay += 20 + gen() % 50;
+    else if (roll <= 8)  delay -= 3 + gen() % 6;
     if (chance(gen) <= 2) delay += 50 + gen() % 100;
     if (chance(gen) <= 2) delay = std::max<int>(1, delay - (30 + gen() % 50));
     return std::max(delay, 1);
@@ -150,6 +166,57 @@ static void EnsurePanelVisible(HWND panel)
         SetWindowPos(panel, nullptr, cx, cy, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
         DbgLog(L"EnsurePanelVisible: repositioned to %d,%d", cx, cy);
     }
+}
+
+DWORD WINAPI MCDispatchThread(LPVOID)
+{
+    DbgLog(L"MCDispatchThread: start");
+
+    for (int i = 0; i < 50 && !g_mcReady; ++i) {
+        int rc = MC_Init();
+        DbgLog(L"MCDispatchThread: MC_Init attempt %d -> rc=%d", i, rc);
+        if (rc == MC_OK) {
+            MC_SetFlySpeed(0.15f);
+            g_cachedFlySpeed = 0.15f;
+            g_cachedFly = 0;
+            g_mcReady = true;
+            DbgLog(L"MCDispatchThread: MC ready");
+        }
+        else {
+            Sleep(200);
+        }
+    }
+
+    if (!g_mcReady) {
+        DbgLog(L"MCDispatchThread: MC_Init failed after all retries");
+        return 0;
+    }
+
+    DbgLog(L"MCDispatchThread: entering dispatch loop");
+    while (true)
+    {
+        EnterCriticalSection(&g_mcQLock);
+        std::deque<std::function<void()>> local;
+        local.swap(g_mcQ);
+        LeaveCriticalSection(&g_mcQLock);
+
+        for (auto& fn : local)
+            fn();
+
+        int want = g_wantFly;
+        if (MC_IsInGame()) {
+            int current = MC_GetFly();
+            if (current != want) {
+                DbgLog(L"MCDispatchThread: fly mismatch want=%d got=%d, reapplying", want, current);
+                MC_SetFly(want);
+            }
+            g_cachedFly = want;
+            g_cachedFlySpeed = MC_GetFlySpeed();
+        }
+
+        Sleep(50);
+    }
+    return 0;
 }
 
 DWORD WINAPI DebugThread(LPVOID)
@@ -243,8 +310,8 @@ static void ClampToParent(HWND panel)
     ScreenToClient(g_hwnd, &tl);
     int pw = wr.right - wr.left, ph = wr.bottom - wr.top;
     int px = tl.x, py = tl.y;
-    if (px < 0)             px = 0;
-    if (py < 0)             py = 0;
+    if (px < 0)              px = 0;
+    if (py < 0)              py = 0;
     if (px + pw > pc.right)  px = pc.right - pw;
     if (py + ph > pc.bottom) py = pc.bottom - ph;
     SetWindowPos(panel, nullptr, px, py, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
@@ -321,8 +388,8 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         int ph = proposed->bottom - proposed->top;
         if (proposed->left < origin.x)             proposed->left = origin.x, proposed->right = origin.x + pw;
         if (proposed->top < origin.y)              proposed->top = origin.y, proposed->bottom = origin.y + ph;
-        if (proposed->right > origin.x + pc.right)  proposed->right = origin.x + pc.right, proposed->left = proposed->right - pw;
-        if (proposed->bottom > origin.y + pc.bottom) proposed->bottom = origin.y + pc.bottom, proposed->top = proposed->bottom - ph;
+        if (proposed->right > origin.x + pc.right)   proposed->right = origin.x + pc.right, proposed->left = proposed->right - pw;
+        if (proposed->bottom > origin.y + pc.bottom)  proposed->bottom = origin.y + pc.bottom, proposed->top = proposed->bottom - ph;
         return TRUE;
     }
     case WM_NCHITTEST: {
@@ -459,7 +526,8 @@ DWORD WINAPI CPSThread(LPVOID)
                 DbgLog(L"CPSThread: control panel visible -> %d", g_controlVisible);
                 if (g_controlVisible) {
                     EnsurePanelVisible(g_controlHwnd);
-                    SetWindowPos(g_controlHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                    SetWindowPos(g_controlHwnd, HWND_TOP, 0, 0, 0, 0,
+                                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                 }
             }
         }
@@ -522,22 +590,11 @@ DWORD WINAPI MainThread(LPVOID)
     DbgLog(L"MainThread: EnumWindows done, g_hwnd=%p", g_hwnd);
 
     InitializeCriticalSection(&g_statsLock);
+    InitializeCriticalSection(&g_mcQLock);
     g_stats.avgCps = g_cfg.cps;
 
-    DbgLog(L"MainThread: starting MC_Init loop");
-    for (int i = 0; i < 50 && !g_mcReady; ++i) {
-        int rc = MC_Init();
-        DbgLog(L"MainThread: MC_Init attempt %d -> %d", i, rc);
-        if (rc == MC_OK) {
-            g_mcReady = true;
-            MC_SetFlySpeed(0.15f);
-            DbgLog(L"MainThread: MC ready");
-        }
-        else {
-            Sleep(200);
-        }
-    }
-    DbgLog(L"MainThread: MC_Init loop done, g_mcReady=%d", g_mcReady);
+    HANDLE hMC = CreateThread(nullptr, 0, MCDispatchThread, nullptr, 0, nullptr);
+    DbgLog(L"MainThread: MCDispatchThread -> %p (err=%lu)", hMC, GetLastError());
 
     HANDLE hCps = CreateThread(nullptr, 0, CPSThread, nullptr, 0, nullptr);
     DbgLog(L"MainThread: CPSThread -> %p (err=%lu)", hCps, GetLastError());
@@ -566,7 +623,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
     }
     if (reason == DLL_PROCESS_DETACH) {
         DbgLog(L"DllMain: DLL_PROCESS_DETACH g_mcReady=%d", g_mcReady);
-        if (g_mcReady) MC_Shutdown();
+        if (g_mcReady) {
+            MC_Post([] { MC_Shutdown(); });
+            Sleep(150);
+        }
     }
     return TRUE;
 }

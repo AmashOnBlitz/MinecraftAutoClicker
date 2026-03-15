@@ -4,34 +4,54 @@
 #include "mclib.h"
 #include <algorithm>
 #include <cwchar>
+#include <functional>
 
 extern AcConfig         g_cfg;
 extern CRITICAL_SECTION g_statsLock;
 extern bool             g_mcReady;
 
-static const wchar_t* kTabLabels[3] = { L"Sliders", L"Keys", L"Fly" };
+extern void         MC_Post(std::function<void()> fn);
+extern float        g_cachedFlySpeed;
+extern int          g_cachedFly;
+extern volatile int g_wantFly;
 
-// ---------------------------------------------------------------------------
-//  Thread-local MC initialisation
-//
-//  MC_Init() must be called once from EVERY OS thread that will issue MC API
-//  calls.  MainThread calls it during start-up; ControlPanelThread never did,
-//  so the first MC call on user interaction (toggle / slider) crashed because
-//  the JNI thread was not attached to the JVM.
-//
-//  EnsureThreadMC() fixes this with a cheap static-local flag so the attach
-//  is attempted exactly once per thread, lazily, just before the first call.
-// ---------------------------------------------------------------------------
-static bool EnsureThreadMC()
+#define AC_DEBUG 1
+
+#ifdef AC_DEBUG
+#include <cstdio>
+static FILE* s_cpLog = nullptr;
+static CRITICAL_SECTION s_cpLock;
+
+static void CP_DbgInit()
 {
-    static thread_local bool s_inited = false;
-    if (s_inited) return true;
-    if (!g_mcReady) return false;          // MC not up yet — caller should skip
-    s_inited = (MC_Init() == MC_OK);
-    return s_inited;
+    InitializeCriticalSection(&s_cpLock);
+    wchar_t tmp[MAX_PATH]{};
+    GetTempPathW(MAX_PATH, tmp);
+    wchar_t path[MAX_PATH]{};
+    swprintf_s(path, L"%sac_cp_debug.log", tmp);
+    _wfopen_s(&s_cpLog, path, L"w");
+    if (s_cpLog) { fwprintf(s_cpLog, L"=== ac_cp_debug.log ===\n"); fflush(s_cpLog); }
 }
 
-// ---------------------------------------------------------------------------
+static void CP_DbgLog(const wchar_t* fmt, ...)
+{
+    if (!s_cpLog) return;
+    EnterCriticalSection(&s_cpLock);
+    wchar_t buf[512]{};
+    va_list args;
+    va_start(args, fmt);
+    vswprintf_s(buf, fmt, args);
+    va_end(args);
+    fwprintf(s_cpLog, L"[%llu] [tid=%lu] %s\n", GetTickCount64(), GetCurrentThreadId(), buf);
+    fflush(s_cpLog);
+    LeaveCriticalSection(&s_cpLock);
+}
+#else
+#define CP_DbgInit()   ((void)0)
+#define CP_DbgLog(...) ((void)0)
+#endif
+
+static const wchar_t* kTabLabels[3] = { L"Sliders", L"Keys", L"Fly" };
 
 static void PopulateFKeyDropdown(CustomDropdown* dd) {
     for (int i = 0; i < KeySelector::kKeyCount; ++i)
@@ -44,9 +64,10 @@ static int FKeyIndexForVK(int vk) {
     return 0;
 }
 
-ControlPanel::ControlPanel() {}
+ControlPanel::ControlPanel() { CP_DbgInit(); CP_DbgLog(L"ControlPanel::ctor"); }
 
 ControlPanel::~ControlPanel() {
+    CP_DbgLog(L"ControlPanel::dtor");
     delete mSliderCps;
     delete mSliderCooldown;
     delete mSliderTrigCD;
@@ -58,6 +79,7 @@ ControlPanel::~ControlPanel() {
 }
 
 void ControlPanel::SetStage(HWND hwnd) {
+    CP_DbgLog(L"SetStage: hwnd=%p", hwnd);
     mHwnd = hwnd;
     RECT rc;
     GetClientRect(hwnd, &rc);
@@ -69,6 +91,7 @@ void ControlPanel::SetStage(HWND hwnd) {
 }
 
 void ControlPanel::Resize(int w, int h) {
+    CP_DbgLog(L"Resize: %d x %d", w, h);
     mWinW = (float)w;
     mWinH = (float)h;
     if (mGfx) mGfx->Resize((UINT)w, (UINT)h);
@@ -76,6 +99,9 @@ void ControlPanel::Resize(int w, int h) {
 }
 
 void ControlPanel::RebuildWidgets() {
+    CP_DbgLog(L"RebuildWidgets: g_mcReady=%d cachedFlySpeed=%.3f cachedFly=%d",
+              (int)g_mcReady, g_cachedFlySpeed, g_cachedFly);
+
     delete mSliderCps;         mSliderCps = nullptr;
     delete mSliderCooldown;    mSliderCooldown = nullptr;
     delete mSliderTrigCD;      mSliderTrigCD = nullptr;
@@ -98,7 +124,7 @@ void ControlPanel::RebuildWidgets() {
     static const float kMins[3] = { 10.0f, 0.5f,  4.0f };
     static const float kMaxs[3] = { 22.0f, 3.0f, 10.0f };
 
-    float defs[3] = { g_cfg.cps, g_cfg.cooldown, g_cfg.triggerCooldown };
+    float    defs[3] = { g_cfg.cps, g_cfg.cooldown, g_cfg.triggerCooldown };
     Slider** targets[3] = { &mSliderCps, &mSliderCooldown, &mSliderTrigCD };
 
     for (int r = 0; r < 3; ++r) {
@@ -110,9 +136,9 @@ void ControlPanel::RebuildWidgets() {
                                  D2D1::ColorF(0.78f, 0.78f, 0.80f), kFills[r]);
     }
 
-    mSliderCps->SetOnChange([](float v) { g_cfg.cps = v;              SaveConfig(g_cfg); });
-    mSliderCooldown->SetOnChange([](float v) { g_cfg.cooldown = v;         SaveConfig(g_cfg); });
-    mSliderTrigCD->SetOnChange([](float v) { g_cfg.triggerCooldown = v;  SaveConfig(g_cfg); });
+    mSliderCps->SetOnChange([](float v) { g_cfg.cps = v;             SaveConfig(g_cfg); });
+    mSliderCooldown->SetOnChange([](float v) { g_cfg.cooldown = v;        SaveConfig(g_cfg); });
+    mSliderTrigCD->SetOnChange([](float v) { g_cfg.triggerCooldown = v; SaveConfig(g_cfg); });
 
     float pairTotal = kComboW * 2.0f + kPairGap;
     float ksX = (mWinW - pairTotal) * 0.5f;
@@ -140,11 +166,8 @@ void ControlPanel::RebuildWidgets() {
     mToggleY = kContentY + 52.0f;
 
     float flySliderY = mToggleY + kToggleH + 28.0f + 14.0f + 18.0f + 10.0f;
-
-    // FIX: use EnsureThreadMC() so this thread is JVM-attached before the
-    //      first MC API call (MC_GetFlySpeed).  Without this, the thread is
-    //      unattached and the call crashes the JVM.
-    float initSpeed = EnsureThreadMC() ? MC_GetFlySpeed() : 0.15f;
+    float initSpeed = g_mcReady ? g_cachedFlySpeed : 0.15f;
+    CP_DbgLog(L"RebuildWidgets: initSpeed=%.3f", initSpeed);
 
     mSliderFlySpeed = new Slider(mHwnd, mGfx,
                                  sliderX, flySliderY, sliderW,
@@ -152,13 +175,16 @@ void ControlPanel::RebuildWidgets() {
                                  D2D1::ColorF(0.78f, 0.78f, 0.80f),
                                  D2D1::ColorF(0.53f, 0.28f, 0.75f));
 
-    // FIX: lambda also uses EnsureThreadMC() for the same reason.
     mSliderFlySpeed->SetOnChange([](float v) {
-        if (EnsureThreadMC()) MC_SetFlySpeed(v);
+        CP_DbgLog(L"SliderFlySpeed onChange -> posting MC_SetFlySpeed(%.3f)", v);
+        MC_Post([v] {
+            CP_DbgLog(L"MC_Post exec: MC_SetFlySpeed(%.3f)", v);
+            MC_SetFlySpeed(v);
+        });
     });
 
-    // FIX: guard MC_GetFly() with EnsureThreadMC().
-    if (EnsureThreadMC()) mFlyEnabled = MC_GetFly() != 0;
+    if (g_mcReady) mFlyEnabled = g_wantFly != 0;
+    CP_DbgLog(L"RebuildWidgets: mFlyEnabled=%d", (int)mFlyEnabled);
 }
 
 bool ControlPanel::IsDragArea(float mx, float my) const {
@@ -203,9 +229,7 @@ void ControlPanel::RenderBackground() {
                           D2D1::ColorF(0.60f, 0.60f, 0.63f, 0.85f), 1.5f);
     mGfx->SetAliased(true);
 
-    float dotGap = 7.0f;
-    float dotR = 2.2f;
-    float dotsY = kDragH * 0.5f;
+    float dotGap = 7.0f, dotR = 2.2f, dotsY = kDragH * 0.5f;
     float startX = mWinW * 0.5f - dotGap;
     for (int d = 0; d < 3; ++d)
         mGfx->FillCircle(startX + d * dotGap, dotsY, dotR,
@@ -216,8 +240,8 @@ void ControlPanel::RenderTabs() {
     float tabW = mWinW / (float)kPageCount;
 
     mGfx->SetAliased(false);
-    mGfx->FillRoundedRect(0.0f, kTabY, mWinW, kTabH,
-                          0.0f, D2D1::ColorF(0.90f, 0.89f, 0.87f));
+    mGfx->FillRoundedRect(0.0f, kTabY, mWinW, kTabH, 0.0f,
+                          D2D1::ColorF(0.90f, 0.89f, 0.87f));
     mGfx->SetAliased(true);
 
     for (int i = 0; i < kPageCount; ++i) {
@@ -265,7 +289,6 @@ void ControlPanel::RenderSlidersPage() {
 
     for (int r = 0; r < 3; ++r) {
         if (!sliders[r]) continue;
-
         float rowTop = kContentY + rowH * r;
         float titleY = rowTop + 10.0f;
         mGfx->DrawTextCentered(kTitles[r], 0.0f, titleY, mWinW, 14.0f, titleCol, 11.5f);
@@ -277,8 +300,7 @@ void ControlPanel::RenderSlidersPage() {
 
         sliders[r]->Render();
 
-        float sliderThumbY = valueY + 18.0f + 10.0f;
-        float minMaxY = sliderThumbY + 10.0f;
+        float minMaxY = valueY + 18.0f + 10.0f + 10.0f;
         wchar_t lo[16], hi[16];
         swprintf_s(lo, L"%.1f", kMins[r]);
         swprintf_s(hi, L"%.1f", kMaxs[r]);
@@ -318,12 +340,10 @@ void ControlPanel::RenderFlyToggle(float x, float y, float w, float h, bool on) 
         : D2D1::ColorF(0.72f, 0.72f, 0.75f);
     mGfx->SetAliased(false);
     mGfx->FillRoundedRect(x, y, w, h, h * 0.5f, bg);
-
     float pad = 3.0f;
     float thumbR = (h - pad * 2.0f) * 0.5f;
     float thumbX = on ? (x + w - pad - thumbR) : (x + pad + thumbR);
-    float thumbY = y + h * 0.5f;
-    mGfx->FillCircle(thumbX, thumbY, thumbR, D2D1::ColorF(1.0f, 1.0f, 1.0f));
+    mGfx->FillCircle(thumbX, y + h * 0.5f, thumbR, D2D1::ColorF(1.0f, 1.0f, 1.0f));
     mGfx->SetAliased(true);
 }
 
@@ -336,6 +356,7 @@ void ControlPanel::RenderJumpPage() {
     D2D1::ColorF labelCol(0.16f, 0.16f, 0.18f);
     D2D1::ColorF valCol(0.53f, 0.28f, 0.75f);
     D2D1::ColorF dimLabel(0.50f, 0.50f, 0.53f);
+    D2D1::ColorF warnCol(0.75f, 0.45f, 0.10f);
 
     float hintY = kContentY + 12.0f;
     mGfx->DrawTextCentered(L"Double Space to Fly", 0.0f, hintY, mWinW, 16.0f, hintCol, 10.5f);
@@ -352,10 +373,9 @@ void ControlPanel::RenderJumpPage() {
     mGfx->DrawTextLeft(L"Enable Fly", jumpLabelX, toggleLabelY, 70.0f, 16.0f, labelCol, 11.5f);
     RenderFlyToggle(mToggleX, mToggleY, kToggleW, kToggleH, mFlyEnabled);
 
-    if (!g_mcReady) {
+    if (!g_mcReady)
         mGfx->DrawTextCentered(L"MC not ready", 0.0f, mToggleY + kToggleH + 6.0f,
                                mWinW, 13.0f, D2D1::ColorF(0.80f, 0.30f, 0.30f), 9.5f);
-    }
 
     float speedTitleY = mToggleY + kToggleH + 28.0f;
     mGfx->DrawTextCentered(L"Fly Speed", 0.0f, speedTitleY, mWinW, 14.0f, labelCol, 11.5f);
@@ -370,6 +390,11 @@ void ControlPanel::RenderJumpPage() {
         float minMaxY = speedValY + 18.0f + 10.0f + 10.0f;
         mGfx->DrawTextLeft(L"0.01", sliderX, minMaxY, 36.0f, 13.0f, dimLabel, 10.0f);
         mGfx->DrawTextLeft(L"2.00", sliderX + sliderW - 36.0f, minMaxY, 36.0f, 13.0f, dimLabel, 10.0f);
+
+        float noticeY = minMaxY + 20.0f;
+        mGfx->DrawTextCentered(
+            L"Fly resets on death or world reload: re-enable after respawning.",
+            sliderX, noticeY, sliderW, 28.0f, warnCol, 9.5f);
     }
 }
 
@@ -422,12 +447,12 @@ void ControlPanel::OnMouseDown(float mx, float my) {
     int hitTab = TabHitTest(mx, my);
     if (hitTab >= 0 && hitTab != mPage) {
         mPage = hitTab;
-        // FIX: guard MC_GetFly() with EnsureThreadMC().
-        if (mPage == 2 && EnsureThreadMC()) mFlyEnabled = MC_GetFly() != 0;
-        int targetH;
-        if (mPage == 0) targetH = (int)kBaseH;
-        else if (mPage == 1) targetH = (int)kKeysH;
-        else                 targetH = (int)kJumpH;
+        CP_DbgLog(L"OnMouseDown: tab switch -> page %d (g_mcReady=%d g_wantFly=%d)",
+                  mPage, (int)g_mcReady, g_wantFly);
+        if (mPage == 2) mFlyEnabled = g_wantFly != 0;
+        int targetH = (mPage == 0) ? (int)kBaseH
+            : (mPage == 1) ? (int)kKeysH
+            : (int)kJumpH;
         RECT wr{};
         GetWindowRect(mHwnd, &wr);
         SetWindowPos(mHwnd, nullptr, 0, 0, wr.right - wr.left, targetH,
@@ -459,10 +484,11 @@ void ControlPanel::OnMouseDown(float mx, float my) {
     case 2: {
         bool hitToggle = mx >= mToggleX && mx <= mToggleX + kToggleW &&
             my >= mToggleY && my <= mToggleY + kToggleH;
-        // FIX: guard MC_SetFly() with EnsureThreadMC() instead of bare g_mcReady.
-        if (hitToggle && EnsureThreadMC()) {
+        if (hitToggle && g_mcReady) {
             mFlyEnabled = !mFlyEnabled;
-            MC_SetFly(mFlyEnabled ? 1 : 0);
+            g_wantFly = mFlyEnabled ? 1 : 0;
+            CP_DbgLog(L"OnMouseDown: fly toggle -> mFlyEnabled=%d g_wantFly=%d",
+                      (int)mFlyEnabled, g_wantFly);
             InvalidateRect(mHwnd, nullptr, FALSE);
         }
         if (mSliderFlySpeed) mSliderFlySpeed->OnMouseDown(mx, my);

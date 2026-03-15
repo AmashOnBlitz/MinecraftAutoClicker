@@ -76,7 +76,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine
 
 	ObjectManager::GetMainRenderer().btnInject->SetOnClick([hWnd]() {
 
-#define INJ_DEBUG 1
+//#define INJ_DEBUG 1
 #ifdef INJ_DEBUG
 		wchar_t _dbgTmp[MAX_PATH]{};
 		GetTempPathW(MAX_PATH, _dbgTmp);

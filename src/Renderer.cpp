@@ -190,6 +190,7 @@ void Renderer::OnMouseMove(float mx, float my)
     if (knobCps)             knobCps->OnMouseMove(mx, my);
     if (knobCooldown)        knobCooldown->OnMouseMove(mx, my);
     if (knobTriggerCooldown) knobTriggerCooldown->OnMouseMove(mx, my);
+    if (pidInput)            pidInput->OnMouseMove(mx, my);
 }
 
 void Renderer::OnMouseDown(float mx, float my)
@@ -275,6 +276,7 @@ void Renderer::OnMouseLeave()
     if (knobCooldown)        knobCooldown->OnMouseLeave();
     if (knobTriggerCooldown) knobTriggerCooldown->OnMouseLeave();
     if (keySelector)         keySelector->OnMouseLeave();
+    if (pidInput)            pidInput->OnMouseLeave();
 }
 
 void Renderer::OnMouseWheel(float mx, float my, int delta)
