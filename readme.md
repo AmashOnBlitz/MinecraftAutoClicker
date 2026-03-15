@@ -13,13 +13,16 @@
 ## What it does
 
 Inject the DLL, and a few background threads kick off handling everything:
-- **Auto-clicking** — left or right click at a set CPS (Clicks Per Second), with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
-- **Control panel** — a floating in-game panel rendered with Direct2D where you can tune CPS, cooldowns, and keybinds without re-injecting
-- **Debug overlay** — a translucent HUD showing live CPS, average CPS, and expected CPS at a glance
+- **Auto-clicking** - left or right click at a set CPS (Clicks Per Second), with jittered delays and occasional micro-bursts so the pattern doesn't look robotic
+- **Fly hack** - toggle creative-style flight in survival mode with adjustable speed, controlled from a dedicated panel tab
+- **Control panel** - a floating in-game panel rendered with Direct2D where you can tune CPS, cooldowns, keybinds, and fly settings without re-injecting
+- **Debug overlay** - a translucent HUD showing live CPS, average CPS, and expected CPS at a glance
 
 Settings persist to a binary file in `%AppData%\AcApp` (fallback : `%TEMP%`) so you don't have to reconfigure every session.
 
 ![Minecraft Injected](Images/minecraftinjected.png)
+
+> **Note:** The panel shown above is from an older version - the Fly tab is not visible here as it didn't exist yet.
 
 ---
 
@@ -27,7 +30,7 @@ Settings persist to a binary file in `%AppData%\AcApp` (fallback : `%TEMP%`) so 
 
 ![Control Panel](Images/ControlPanel.png)
 
-The control panel is fully custom-drawn using Direct2D — sliders, rotary knobs, dropdowns, checkboxes, the works. All widgets are remappable.
+The control panel is fully custom-drawn using Direct2D - sliders, rotary knobs, dropdowns, checkboxes, the works. All widgets are remappable. The panel is split across three tabs: **Sliders**, **Keys**, and **Fly**.
 
 | Setting | Range / Options |
 |---|---|
@@ -37,6 +40,23 @@ The control panel is fully custom-drawn using Direct2D — sliders, rotary knobs
 | Trigger cooldown | Configurable |
 | Cooldown period | Configurable |
 | Keybinds | F1–F12 + Middle Mouse, remappable in-app |
+
+---
+
+## Fly Hack
+
+![Fly Hack Panel](Images/FlyHack.png)
+
+Accessible from the **Fly** tab in the control panel. Enables creative-style flight in survival using JVM reflection under the hood - no mods, just the injected DLL talking directly to the running JVM.
+
+| Setting | Range / Notes |
+|---|---|
+| Enable Fly | Toggle on/off |
+| Fly Speed | 0.01 – 2.0 (default Minecraft value is ~0.05) |
+
+Once enabled, **double-tap Space** in-game to take off, same as vanilla creative flight.
+
+> ⚠️ **Fly state resets on death and on world reload.** Re-toggle it from the panel after respawning or re-entering a world - the toggle accurately reflects the current in-game state when you switch to the Fly tab.
 
 ---
 
@@ -50,14 +70,15 @@ Small translucent HUD that shows current CPS vs avg CPS vs expected CPS, useful 
 
 ## Project structure
 
-Everything's flat in the solution root — intentional, so VS filter organization handles the actual grouping. Open the `.sln` and it'll make sense.
+Everything lives under `src/` and `include/` - open the `.sln` and the VS filter organization handles the actual grouping.
 
 ```
-Addon.dll         ← injected payload (auto-clicker logic + UI)
+Addon.dll         ← injected payload (auto-clicker + fly hack logic + UI)
 main.cpp          ← injector host (Win32 window, DLL injection)
+mclib.h           ← thin C API over JVM reflection (fly, XP, item count)
 Graphics.cpp/h    ← thin Direct2D wrapper
 Renderer.cpp/h    ← main window rendering + widget layout
-ControlPanel.*    ← floating in-game control panel
+ControlPanel.*    ← floating in-game control panel (Sliders / Keys / Fly tabs)
 Slider.*          ← custom slider widget
 Knob.*            ← rotary knob widget
 Button.*          ← button widget (normal + bottom-padded variants)
@@ -65,7 +86,7 @@ Checkbox.*        ← checkbox widget
 CustomDropdown.*  ← scrollable dropdown
 KeySelector.*     ← paired F-key picker
 PidInput.*        ← digit-box PID entry widget
-Config.hpp        ← flat binary config r/w to %TEMP%
+Config.hpp        ← flat binary config r/w to %AppData%\AcApp
 ```
 
 ---
@@ -92,15 +113,16 @@ Needs **Visual Studio** with the Windows SDK. Direct2D and DWrite headers come w
 4. Set your CPS, cooldowns, and keybinds
 5. Hit Inject
 6. In-game, press your toggle key to start/stop clicking
+7. Open the Fly tab in the control panel to enable flight
 ```
 
-Control panel and debug overlay toggle independently — defaults are `F11` / `F12`.
+Control panel and debug overlay toggle independently - defaults are `F11` / `F12`.
 
 ---
 
 ## Disclaimer
 
-Side project I made to get used to Win32, Direct2D, espacially DLL injection, and thread. (may recieve tweaks and more hacks in future), not meant to be used in competitive play.  
+Side project I made to get used to Win32, Direct2D, especially DLL injection, and threading. (may receive tweaks and more hacks in future), not meant to be used in competitive play.  
   
 - No responsibility taken for bans or account issues
 - Anti-cheat (EAC, VAC, etc.) may detect injection regardless of click patterns
