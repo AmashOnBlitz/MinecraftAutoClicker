@@ -1,7 +1,7 @@
 <div align="center">
   <img src="Images/icon.ico" width="80" />
-  <h1>Minecraft Auto Clicker</h1>
-  <p>DLL injector + auto-clicker I built basically from scratch while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to not look sus.</p>
+  <h1>Minecraft Cheat Panel</h1>
+  <p>DLL injector + auto-clicker + fly hack I built basically from scratch while learning Win32 and Direct2D.<br/>Injects into a running Minecraft process and handles clicking with enough jitter to not look sus.</p>
 </div>
 
 The injection and overlay system is pretty generic honestly, same approach would work for attaching to other processes, games, desktop apps, whatever has a window. Minecraft is just what I tested against but the DLL injection, Direct2D overlay and thread stuff carries over to pretty much anything you want to hook into.
